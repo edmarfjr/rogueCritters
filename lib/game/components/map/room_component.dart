@@ -395,38 +395,27 @@ class RoomComponent extends PositionComponent with HasGameRef {
   void _spawnShop() {
     final centro = position + Vector2(width / 2, centerY);
 
-    final consumivel =
-        ConsumableType.values[_random.nextInt(ConsumableType.values.length)];
-    final upgrade =
-        PowerUpType.values[_random.nextInt(PowerUpType.values.length)];
-
-    // A terceira bancada é meio a meio entre upgrade de stat e item com
-    // gatilho. Ao contrário do pedestal, a loja só ESPIA a pool — o item sai
-    // dela na hora da compra (ver `entregar` abaixo). Expor não gasta: uma
-    // loja que o jogador não tem moeda pra pagar deixa o item disponível pro
-    // resto da run.
-    final jogo = game;
-    final itemEfeito = _random.nextBool() && jogo is CreaturesRogueGame
-        ? jogo.espiarItemEfeito()
-        : null;
-
-    parent?.add(
-      ShopStand(
-        position: centro + Vector2(-32, -8),
-        preco: 4,
-        spritePath: 'items/fruta.png',
-        cor1: Palette.laranja,
-        cor2: Palette.verdeEsc,
-        // `heal` devolve false com a vida cheia — e é isso que evita cobrar por
-        // uma cura que não curou.
-        entregar: (p) => p.heal(2),
-        msgFalha: game.buildContext!.l10n.effect_vidaCheia,
-        descricao: (context) => context.l10n.effect_maisVida(2),
-      ),
+    // Cada balcão é montado por uma função, e não direto: com `Reposicao` a
+    // compra pede um balcão NOVO pro mesmo lugar (`ShopStand.repor`), e a
+    // mesma função sorteia o produto de novo.
+    ShopStand balcaoCura() => ShopStand(
+      position: centro + Vector2(-32, -8),
+      preco: 4,
+      spritePath: 'items/fruta.png',
+      cor1: Palette.laranja,
+      cor2: Palette.verdeEsc,
+      // `heal` devolve false com a vida cheia — e é isso que evita cobrar por
+      // uma cura que não curou.
+      entregar: (p) => p.heal(2),
+      msgFalha: game.buildContext!.l10n.effect_vidaCheia,
+      descricao: (context) => context.l10n.effect_maisVida(2),
+      repor: balcaoCura,
     );
 
-    parent?.add(
-      ShopStand(
+    ShopStand balcaoConsumivel() {
+      final consumivel =
+          ConsumableType.values[_random.nextInt(ConsumableType.values.length)];
+      return ShopStand(
         position: centro + Vector2(0, -8),
         preco: 7,
         spritePath: consumivel.spritePath,
@@ -434,46 +423,65 @@ class RoomComponent extends PositionComponent with HasGameRef {
         cor2: consumivel.cor2,
         entregar: (p) => p.addConsumable(consumivel),
         descricao: consumivel.descricao,
-      ),
-    );
+        repor: balcaoConsumivel,
+      );
+    }
 
-    parent?.add(
-      itemEfeito != null
-          // Mais caro que o upgrade de stat: muda como se joga, e a run só
-          // oferece cada um uma vez.
-          ? ShopStand(
-              position: centro + Vector2(32, -8),
-              preco: 20,
-              spritePath: itemEfeito.spritePath,
-              cor1: itemEfeito.cor1,
-              cor2: itemEfeito.cor2,
-              entregar: (p) {
-                // `consumirItemEfeito` devolve false se um pedestal entregou
-                // o mesmo item enquanto a loja o exibia. Recusar aqui é o que
-                // impede duas cópias na lista — e, como `ShopStand` só cobra
-                // quando `entregar` devolve true, o jogador não paga por nada.
-                final jogo = game;
-                if (jogo is! CreaturesRogueGame) return false;
-                if (!jogo.consumirItemEfeito(itemEfeito)) return false;
-                p.itens.add(itemEfeito);
-                return true;
-              },
-              msgFalha: game.buildContext!.l10n.effect_jaTemItem,
-              descricao: itemEfeito.descricao,
-            )
-          : ShopStand(
-              position: centro + Vector2(32, -8),
-              preco: 14,
-              spritePath: upgrade.spritePath,
-              cor1: upgrade.cor1,
-              cor2: upgrade.cor2,
-              entregar: (p) {
-                upgrade.aplicar(p);
-                return true; // upgrade não tem como falhar
-              },
-              descricao: upgrade.descricao,
-            ),
-    );
+    // A terceira bancada é meio a meio entre upgrade de stat e item com
+    // gatilho. Ao contrário do pedestal, a loja só ESPIA a pool — o item sai
+    // dela na hora da compra (ver `entregar` abaixo). Expor não gasta: uma
+    // loja que o jogador não tem moeda pra pagar deixa o item disponível pro
+    // resto da run.
+    ShopStand balcaoEspecial() {
+      final jogo = game;
+      final itemEfeito = _random.nextBool() && jogo is CreaturesRogueGame
+          ? jogo.espiarItemEfeito()
+          : null;
+      if (itemEfeito != null) {
+        // Mais caro que o upgrade de stat: muda como se joga, e a run só
+        // oferece cada um uma vez.
+        return ShopStand(
+          position: centro + Vector2(32, -8),
+          preco: 20,
+          spritePath: itemEfeito.spritePath,
+          cor1: itemEfeito.cor1,
+          cor2: itemEfeito.cor2,
+          entregar: (p) {
+            // `consumirItemEfeito` devolve false se um pedestal entregou o
+            // mesmo item enquanto a loja o exibia. Recusar aqui é o que impede
+            // duas cópias na lista — e, como `ShopStand` só cobra quando
+            // `entregar` devolve true, o jogador não paga por nada.
+            final jogo = game;
+            if (jogo is! CreaturesRogueGame) return false;
+            if (!jogo.consumirItemEfeito(itemEfeito)) return false;
+            p.itens.add(itemEfeito);
+            return true;
+          },
+          msgFalha: game.buildContext!.l10n.effect_jaTemItem,
+          descricao: itemEfeito.descricao,
+          repor: balcaoEspecial,
+        );
+      }
+      final upgrade =
+          PowerUpType.values[_random.nextInt(PowerUpType.values.length)];
+      return ShopStand(
+        position: centro + Vector2(32, -8),
+        preco: 14,
+        spritePath: upgrade.spritePath,
+        cor1: upgrade.cor1,
+        cor2: upgrade.cor2,
+        entregar: (p) {
+          upgrade.aplicar(p);
+          return true; // upgrade não tem como falhar
+        },
+        descricao: upgrade.descricao,
+        repor: balcaoEspecial,
+      );
+    }
+
+    parent?.add(balcaoCura());
+    parent?.add(balcaoConsumivel());
+    parent?.add(balcaoEspecial());
   }
 
   void _spawnRecompensa() {

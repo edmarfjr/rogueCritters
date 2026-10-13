@@ -394,6 +394,27 @@ class Player extends PositionComponent
   ///    entra em `_serializarRun`.
   static double danoMultDerivado = 1.0;
 
+  /// Escala do tempo dos INIMIGOS (1 = normal). Derivado como os outros:
+  /// zerado a cada quadro e reescrito pelos itens (ver `RelogioParado`). Lido
+  /// pelo `Enemy.update`, que multiplica o próprio `dt` por ele.
+  double tempoInimigos = 1.0;
+
+  /// Quanto os projéteis do jogador curvam rumo ao inimigo mais próximo, em
+  /// rad/s. 0 = voam reto. Derivado (ver `Telecinese`).
+  double guiamentoTiros = 0.0;
+
+  /// Multiplicador dos preços da loja. Derivado (ver `Cupom`).
+  double fatorPrecoLoja = 1.0;
+
+  /// A loja repõe o balcão depois de cada compra? Derivado (ver `Reposicao`).
+  bool lojaRepoe = false;
+
+  /// Abates contados pelas `PresasDeVampiro` até a próxima cura.
+  int abatesParaVampiro = 0;
+
+  /// Sala em que a `Bencao` já anulou um golpe. Outra sala = bênção pronta.
+  Object? salaDaBencaoGasta;
+
   Vector2 velocity = Vector2.zero();
   Vector2 knockbackVelocity = Vector2.zero();
   Vector2 plrDir = Vector2(0, 1);
@@ -727,6 +748,10 @@ class Player extends PositionComponent
     critChanceDerivada = 0.0;
     cdMultDerivado = 1.0;
     velMultDerivado = 1.0;
+    tempoInimigos = 1.0;
+    guiamentoTiros = 0.0;
+    fatorPrecoLoja = 1.0;
+    lojaRepoe = false;
     ignoraDesvantagemElemental = false;
     escudoTravado = false;
     curaBloqueada = false;
@@ -1227,6 +1252,10 @@ class Player extends PositionComponent
     danoMultDerivado = 1.0;
     cdMultDerivado = 1.0;
     velMultDerivado = 1.0;
+    tempoInimigos = 1.0;
+    guiamentoTiros = 0.0;
+    fatorPrecoLoja = 1.0;
+    lojaRepoe = false;
     ignoraDesvantagemElemental = false;
     escudoTravado = false;
     curaBloqueada = false;
@@ -1533,6 +1562,10 @@ class Player extends PositionComponent
     critChanceDerivada = 0.0;
     cdMultDerivado = 1.0;
     velMultDerivado = 1.0;
+    tempoInimigos = 1.0;
+    guiamentoTiros = 0.0;
+    fatorPrecoLoja = 1.0;
+    lojaRepoe = false;
     ignoraDesvantagemElemental = false;
     escudoTravado = false;
     curaBloqueada = false;
@@ -2184,6 +2217,21 @@ class Player extends PositionComponent
       return;
     }
 
+    // Anulação (ex.: `Bencao`): depois da evasão, que é sorte da criatura, e
+    // antes do escudo — o golpe anulado não gasta carga nenhuma.
+    for (final item in itens) {
+      if (item.anulaGolpe(this)) {
+        parent?.add(
+          TextEffect(
+            text: '!',
+            position: position.clone() + Vector2(0, -size.y / 2 - 4),
+            color: Palette.amarelo,
+          ),
+        );
+        return;
+      }
+    }
+
     if (consumirEscudo()) {
       // Escudo de Espinhos: o golpe absorvido vira explosão. Fica aqui, e não
       // na habilidade, porque só este ponto sabe que um golpe FOI absorvido —
@@ -2251,6 +2299,9 @@ class Player extends PositionComponent
     ultimaOrigemDeDano = origem;
     ultimoDanoPorArmadilha = porArmadilha;
     currentHealth -= amountFinal;
+    for (final item in itens) {
+      item.aoPerderVida(this, amountFinal);
+    }
 
     // Última chance antes de a criatura sair de campo: o primeiro item que
     // aceitar segura o golpe e o resto nem é consultado (dois salvamentos no

@@ -427,6 +427,11 @@ abstract class Enemy extends PositionComponent
 
   @override
   void update(double dt) {
+    // Relógio Parado: o tempo do inimigo inteiro anda mais devagar —
+    // movimento, pulo, recarga de ataque e os efeitos filhos dele. Escalar o
+    // `dt` aqui alcança todo comportamento de uma vez, inclusive os que não
+    // usam `speed` (quem pula, quem tem cronômetro de ataque).
+    dt *= playerTarget.tempoInimigos;
     super.update(dt);
 
     // Anchor.center: o "chão" (pés) fica meio size.y abaixo do centro.
@@ -748,6 +753,11 @@ abstract class Enemy extends PositionComponent
 
     // Cheat (ver GameSettings.godMode): qualquer golpe que passe da redução
     // de dano mata na hora, não importa a vida restante.
+    if (doJogador && amountFinal > 0) {
+      for (final item in playerTarget.itens) {
+        amountFinal = item.ajustarGolpe(playerTarget, this, amountFinal);
+      }
+    }
     if (doJogador && GameSettings.instance.godMode && amountFinal > 0) {
       amountFinal = health;
     }

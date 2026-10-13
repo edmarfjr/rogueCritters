@@ -108,6 +108,10 @@ class Projectile extends SpriteAnimationComponent with CollisionCallbacks, HasGa
   /// — nem perde pra vantagem de tipo. Ver [_resolverColisaoEntreProjeteis].
   final bool engoleProjeteis;
 
+  /// Giro máximo rumo ao inimigo mais próximo, em rad/s (0 = sem guiamento
+  /// próprio). Ver [_guiar].
+  final double guiamento;
+
   /// Tiro que saiu ÀS CEGAS: o inimigo que disparou estava cego no instante
   /// do disparo. Acerta os outros inimigos além do jogador — nunca quem
   /// atirou. Fotografado no nascimento: recuperar a visão depois não chama o
@@ -157,6 +161,7 @@ class Projectile extends SpriteAnimationComponent with CollisionCallbacks, HasGa
     this.noChao = false,
     this.interageComProjeteis = true,
     this.engoleProjeteis = false,
+    this.guiamento = 0.0,
     Vector2? size,
     int priority = 0,
     }): super(
@@ -270,6 +275,7 @@ class Projectile extends SpriteAnimationComponent with CollisionCallbacks, HasGa
 
     switch (movimento) {
       case ProjetilMovimento.reto:
+        _guiar(dt);
         position += direction * speed * dt;
       case ProjetilMovimento.espiral:
         _anguloEspiral += velAngular * dt;
@@ -419,6 +425,53 @@ class Projectile extends SpriteAnimationComponent with CollisionCallbacks, HasGa
       if (atravessa <= 0) onDestroy();
     }
   }
+
+  /// Curva rumo ao inimigo mais próximo, quando o dono é o jogador e algum
+  /// item liga o guiamento (ver `Telecinese`) — ou quando o próprio projétil
+  /// nasceu guiado ([guiamento] > 0, ex.: os bichos do `Enxame`).
+  ///
+  /// Gira no máximo `taxa * dt` por quadro: curva, não teleporta pra mira.
+  /// Projétil parado (nuvem, poça) não tem o que girar.
+  void _guiar(double dt) {
+    if (speed == 0 || isEnemy) return;
+    final dono = owner;
+    final taxa = guiamento > 0
+        ? guiamento
+        : dono is Player
+        ? dono.guiamentoTiros
+        : 0.0;
+    if (taxa <= 0) return;
+
+    Enemy? alvo;
+    var melhor = _alcanceGuiamento * _alcanceGuiamento;
+    for (final e in parent?.children.whereType<Enemy>() ?? const <Enemy>[]) {
+      if (e.health <= 0 || e.summonTimer > 0) continue;
+      final d2 = e.absolutePosition.distanceToSquared(absolutePosition);
+      if (d2 < melhor) {
+        melhor = d2;
+        alvo = e;
+      }
+    }
+    if (alvo == null) return;
+
+    final atual = atan2(direction.y, direction.x);
+    final rumo = alvo.absolutePosition - absolutePosition;
+    final desejado = atan2(rumo.y, rumo.x);
+    var diff = desejado - atual;
+    while (diff > pi) {
+      diff -= 2 * pi;
+    }
+    while (diff < -pi) {
+      diff += 2 * pi;
+    }
+    final passo = diff.clamp(-taxa * dt, taxa * dt);
+    final novo = atual + passo;
+    direction.setValues(cos(novo), sin(novo));
+    angle = direction.screenAngle();
+  }
+
+  /// Até onde o guiamento procura alvo.
+  static const double _alcanceGuiamento = 110.0;
 
   /// Cada lado do encontro chama isto pra SI MESMO (o Flame dispara o
   /// `onCollisionStart` nos dois), então aqui só se decide o destino deste.

@@ -30,6 +30,10 @@ class ShopStand extends Collectible {
   /// e `PowerUpTypeData.descricao`), pra loja e chão lerem igual.
   final String Function(BuildContext context) descricao;
 
+  /// Monta um balcão NOVO pra este lugar depois de uma compra, quando o
+  /// jogador tem `Reposicao`. Nulo = este balcão não se repõe.
+  final ShopStand Function()? repor;
+
   ShopStand({
     required super.position,
     required this.preco,
@@ -37,6 +41,7 @@ class ShopStand extends Collectible {
     required super.spritePath,
     required this.descricao,
     this.msgFalha,
+    this.repor,
     super.cor1,
     super.cor2,
   });
@@ -64,7 +69,8 @@ class ShopStand extends Collectible {
   bool onCollect(Player player) {
     final l = game.buildContext!.l10n;
 
-    if (player.coins < preco) {
+    final custo = _precoPara(player);
+    if (player.coins < custo) {
       _avisar(l.effect_semMoeda);
       return false; // continua no balcão: dá pra voltar com dinheiro
     }
@@ -74,11 +80,21 @@ class ShopStand extends Collectible {
       return false;
     }
 
-    player.coins -= preco;
+    player.coins -= custo;
     _avisar(descricao(game.buildContext!));
+
+    // Reposição: um balcão novo no mesmo lugar. Some este e nasce outro, em
+    // vez de reaproveitar, porque o produto (e o sprite) pode mudar.
+    final novo = repor;
+    if (player.lojaRepoe && novo != null) parent?.add(novo());
 
     return true;
   }
+
+  /// Preço com os descontos do jogador (ver `Cupom`). Nunca de graça.
+  int _precoPara(Player player) =>
+      (preco * player.fatorPrecoLoja).ceil().clamp(1, preco);
+
 
   void _avisar(String texto) {
     parent?.add(
@@ -96,7 +112,7 @@ class ShopStand extends Collectible {
 
     _precoPaint.render(
       canvas,
-      '$preco',
+      '${_precoPara(game.player)}',
       Vector2(size.x / 2, size.y + 1),
       anchor: Anchor.topCenter,
     );

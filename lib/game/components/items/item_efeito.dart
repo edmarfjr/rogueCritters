@@ -163,6 +163,18 @@ abstract class ItemEfeito implements ItemDescritor {
   /// os dois recursos no mesmo golpe.
   bool aoCairEmCombate(Player player) => false;
 
+  /// Anula o golpe inteiro? Consultado depois da evasão e ANTES do escudo:
+  /// devolver `true` faz o golpe não acontecer — nem escudo, nem vida.
+  bool anulaGolpe(Player player) => false;
+
+  /// O golpe tirou vida de verdade (passou de evasão, anulação e escudo).
+  /// [dano] é o quanto a vida caiu.
+  void aoPerderVida(Player player, double dano) {}
+
+  /// Ajusta o dano de um golpe do jogador num inimigo, depois do crítico e
+  /// antes de a vida cair. Devolve o dano novo — sem mexer, o mesmo [dano].
+  double ajustarGolpe(Player player, Enemy alvo, double dano) => dano;
+
   void aoAtualizar(Player player, double dt) {}
 }
 
@@ -230,6 +242,15 @@ class ItemEfeitoRegistry {
     GatilhoFrio(),
     SangueFrio(),
     Bussola(),
+    Cofrinho(),
+    Cupom(),
+    Reposicao(),
+    Agulha(),
+    PresasDeVampiro(),
+    Bencao(),
+    RelogioParado(),
+    Enxame(),
+    Telecinese(),
   ];
 
   static ItemEfeito? porId(String id) {
@@ -3224,5 +3245,273 @@ class ItemEfeitoPickup extends Collectible {
       ),
     );
     return true;
+  }
+}
+
+// ===========================================================================
+// Lote inspirado em The Binding of Isaac. Todos funcionam com qualquer
+// criatura e qualquer grupo: nenhum depende do tipo de ataque.
+// ===========================================================================
+
+/// Levar dano faz cair moedas (Piggy Bank). Só quando a vida cai de verdade:
+/// golpe evadido, anulado ou comido pelo escudo não paga nada.
+class Cofrinho extends ItemEfeito {
+  const Cofrinho();
+
+  static const int moedas = 2;
+
+  @override
+  String get id => 'cofrinho';
+  @override
+  String get spritePath => 'items/pigBank.png';
+  @override
+  Color get cor1 => Palette.rosa;
+  @override
+  Color get cor2 => Palette.mauve;
+  @override
+  String nome(BuildContext context) => context.l10n.item_cofrinho;
+  @override
+  String descricao(BuildContext context) => context.l10n.item_cofrinhoDesc;
+
+  @override
+  void aoPerderVida(Player player, double dano) {
+    final rng = Random();
+    for (var i = 0; i < moedas; i++) {
+      player.parent?.add(
+        CoinPickup(
+          position: player.position +
+              Vector2(rng.nextDouble() * 24 - 12, rng.nextDouble() * 24 - 12),
+        ),
+      );
+    }
+  }
+}
+
+/// Loja pela metade do preço (Steam Sale), arredondando pra cima.
+class Cupom extends ItemEfeito {
+  const Cupom();
+
+  @override
+  String get id => 'cupom';
+  @override
+  String get spritePath => 'items/cupon.png';
+  @override
+  Color get cor1 => Palette.verde;
+  @override
+  Color get cor2 => Palette.verdeEsc;
+  @override
+  String nome(BuildContext context) => context.l10n.item_cupom;
+  @override
+  String descricao(BuildContext context) => context.l10n.item_cupomDesc;
+
+  @override
+  void aoAtualizar(Player player, double dt) {
+    player.fatorPrecoLoja *= 0.5;
+  }
+}
+
+/// O balcão da loja repõe outro produto depois de cada compra (Restock).
+class Reposicao extends ItemEfeito {
+  const Reposicao();
+
+  @override
+  String get id => 'reposicao';
+  @override
+  String get spritePath => 'items/restock.png';
+  @override
+  Color get cor1 => Palette.marrom;
+  @override
+  Color get cor2 => Palette.burgundy;
+  @override
+  String nome(BuildContext context) => context.l10n.item_reposicao;
+  @override
+  String descricao(BuildContext context) => context.l10n.item_reposicaoDesc;
+
+  @override
+  void aoAtualizar(Player player, double dt) {
+    player.lojaRepoe = true;
+  }
+}
+
+/// Chance de abater na hora um inimigo comum (Euthanasia). Boss fica de fora:
+/// um golpe de sorte encerrando a luta do andar tiraria o sentido dela.
+class Agulha extends ItemEfeito {
+  const Agulha();
+
+  static const double chance = 0.03;
+
+  @override
+  String get id => 'agulha';
+  @override
+  String get spritePath => 'items/seringa.png';
+  @override
+  Color get cor1 => Palette.cinza;
+  @override
+  Color get cor2 => Palette.indigo;
+  @override
+  String nome(BuildContext context) => context.l10n.item_agulha;
+  @override
+  String descricao(BuildContext context) => context.l10n.item_agulhaDesc;
+
+  @override
+  double ajustarGolpe(Player player, Enemy alvo, double dano) {
+    if (alvo.ehBoss || Random().nextDouble() >= chance) return dano;
+    return max(dano, alvo.health);
+  }
+}
+
+/// A cada [abates] abates, cura meio coração (Charm of the Vampire). É o único
+/// item que cura por abate.
+class PresasDeVampiro extends ItemEfeito {
+  const PresasDeVampiro();
+
+  static const int abates = 12;
+
+  @override
+  String get id => 'presasDeVampiro';
+  @override
+  String get spritePath => 'items/fangs.png';
+  @override
+  Color get cor1 => Palette.vermelho;
+  @override
+  Color get cor2 => Palette.burgundy;
+  @override
+  String nome(BuildContext context) => context.l10n.item_presasDeVampiro;
+  @override
+  String descricao(BuildContext context) =>
+      context.l10n.item_presasDeVampiroDesc;
+
+  @override
+  void aoMatarInimigo(Player player, Enemy inimigo) {
+    player.abatesParaVampiro++;
+    if (player.abatesParaVampiro < abates) return;
+    player.abatesParaVampiro = 0;
+    player.heal(1);
+  }
+}
+
+/// O primeiro golpe recebido em cada sala é anulado (Holy Mantle). Diferente
+/// do escudo, que regenera com o tempo: aqui a carga é uma por sala, e volta
+/// ao entrar em outra.
+class Bencao extends ItemEfeito {
+  const Bencao();
+
+  @override
+  String get id => 'bencao';
+  @override
+  String get spritePath => 'items/bible.png';
+  @override
+  Color get cor1 => Palette.marrom;
+  @override
+  Color get cor2 => Palette.amarelo;
+  @override
+  String nome(BuildContext context) => context.l10n.item_bencao;
+  @override
+  String descricao(BuildContext context) => context.l10n.item_bencaoDesc;
+
+  @override
+  bool anulaGolpe(Player player) {
+    final sala = player.currentRoom;
+    if (sala == null || player.salaDaBencaoGasta == sala) return false;
+    player.salaDaBencaoGasta = sala;
+    return true;
+  }
+}
+
+/// Todos os inimigos vivem 20% mais devagar (Stopwatch) — andam, pulam e
+/// atacam mais devagar, porque o tempo deles inteiro é escalado (ver
+/// `Enemy.update`). Os tiros que eles já soltaram voam na velocidade normal.
+class RelogioParado extends ItemEfeito {
+  const RelogioParado();
+
+  @override
+  String get id => 'relogioParado';
+  @override
+  String get spritePath => 'items/clock.png';
+  @override
+  Color get cor1 => Palette.amarelo;
+  @override
+  Color get cor2 => Palette.azulEsc;
+  @override
+  String nome(BuildContext context) => context.l10n.item_relogioParado;
+  @override
+  String descricao(BuildContext context) =>
+      context.l10n.item_relogioParadoDesc;
+
+  @override
+  void aoAtualizar(Player player, double dt) {
+    player.tempoInimigos *= 0.8;
+  }
+}
+
+/// Levar dano solta [bichos] bichinhos que perseguem o inimigo mais próximo e
+/// estouram nele (Infestation). São projéteis guiados, sem tipo.
+class Enxame extends ItemEfeito {
+  const Enxame();
+
+  static const int bichos = 2;
+
+  @override
+  String get id => 'enxame';
+  @override
+  String get spritePath => 'items/hive.png';
+  @override
+  Color get cor1 => Palette.laranja;
+  @override
+  Color get cor2 => Palette.marrom;
+  @override
+  String nome(BuildContext context) => context.l10n.item_enxame;
+  @override
+  String descricao(BuildContext context) => context.l10n.item_enxameDesc;
+
+  @override
+  void aoPerderVida(Player player, double dano) {
+    final rng = Random();
+    for (var i = 0; i < bichos; i++) {
+      final angulo = rng.nextDouble() * 2 * pi;
+      player.parent?.add(
+        Projectile(
+          owner: player,
+          position: player.position.clone(),
+          direction: Vector2(cos(angulo), sin(angulo)),
+          speed: 70,
+          guiamento: 6.0,
+          dmg: player.creatureData.stats.ataque * 0.6,
+          lifeTime: 3.0,
+          radius: 3,
+          size: Vector2.all(8),
+          sprPath: 'projeteis/bug.png',
+          cor1: cor1,
+          cor2: cor2,
+          tipo: CreatureType.neutro,
+          playSfx: false,
+        ),
+      );
+    }
+  }
+}
+
+/// Seus projéteis curvam rumo ao inimigo mais próximo (Spoon Bender). Curva
+/// moderada: corrige a mira de longe, e quase não mexe nos golpes de perto,
+/// que somem antes de dar tempo de virar.
+class Telecinese extends ItemEfeito {
+  const Telecinese();
+
+  @override
+  String get id => 'telecinese';
+  @override
+  String get spritePath => 'items/spoon.png';
+  @override
+  Color get cor1 => Palette.cinza;
+  @override
+  Color get cor2 => Palette.indigo;
+  @override
+  String nome(BuildContext context) => context.l10n.item_telecinese;
+  @override
+  String descricao(BuildContext context) => context.l10n.item_telecineseDesc;
+
+  @override
+  void aoAtualizar(Player player, double dt) {
+    if (player.guiamentoTiros < 4.0) player.guiamentoTiros = 4.0;
   }
 }

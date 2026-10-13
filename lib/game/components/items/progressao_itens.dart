@@ -37,6 +37,15 @@ class ProgressaoItens {
     BauDoTesouro(), //      nível 19
     CascaDeOvo(), //        nível 20
     Jejum(), //             nível 21
+    Cofrinho(), //          nível 22
+    Cupom(), //             nível 23
+    Agulha(), //            nível 24
+    Bencao(), //            nível 25
+    PresasDeVampiro(), //   nível 26
+    Reposicao(), //         nível 27
+    RelogioParado(), //     nível 28
+    Enxame(), //            nível 29
+    Telecinese(), //        nível 30
   ];
 
   /// XP pra passar do nível [nivel] pro seguinte (nível 0 → 1 custa 30).
