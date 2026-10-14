@@ -35,6 +35,22 @@ class PedestalComponent extends Obstacle {
   /// famílias.
   final ItemEfeito? itemEfeito;
 
+  /// Outras ofertas que se alternam com [itemEfeito] (ver `CoroaInstavel`).
+  /// Vazia = o item fica parado, como sempre.
+  final List<ItemEfeito> alternativas;
+
+  /// Segundos que cada oferta fica antes de trocar pela próxima.
+  static const double intervaloCoroa = 1.0;
+
+  double _tempoTroca = 0.0;
+  int _indiceOferta = 0;
+
+  /// Coletável da troca, enquanto ainda monta. Entre o antigo sair e este
+  /// entrar o pedestal fica sem coletável por alguns quadros — sem isto, quem
+  /// observa a ausência (os irmãos, a sala de desafio) leria a troca como
+  /// "o jogador levou".
+  ItemEfeitoPickup? _trocaMontando;
+
   /// Já vi um coletável nascer aqui?
   ///
   /// Sem isto, [update] veria "pedestal sem item" no primeiro quadro — o
@@ -50,6 +66,7 @@ class PedestalComponent extends Obstacle {
     super.cor2 = Palette.cinzaEsc,
     required this.familia,
     this.itemEfeito,
+    this.alternativas = const [],
   }) : super(
          spritePath: 'tileset/pedestal.png',
          size: Vector2(16, 16),
@@ -71,7 +88,12 @@ class PedestalComponent extends Obstacle {
   /// [familiaIrmao] é o desempate de quando a pool de ITEM_EFEITO acaba: o
   /// pedestal cai na família que o irmão NÃO tem, senão a escolha poderia
   /// oferecer duas vezes a mesma coisa.
-  static ({int familia, ItemEfeito? item}) sortearOferta(
+  ///
+  /// Com a `CoroaInstavel`, a oferta de ITEM_EFEITO tira da pool também as
+  /// [alternativas] que vão se alternar com ela — pelo mesmo motivo: o que o
+  /// jogador viu passar e não levou não volta.
+  static ({int familia, ItemEfeito? item, List<ItemEfeito> alternativas})
+  sortearOferta(
     CreaturesRogueGame jogo,
     Random rng, {
     int? familia,
@@ -80,7 +102,16 @@ class PedestalComponent extends Obstacle {
     final escolhida = familia ?? rng.nextInt(3);
     if (escolhida == 0) {
       final item = jogo.sortearItemEfeito();
-      if (item != null) return (familia: 0, item: item);
+      if (item != null) {
+        final alternativas = <ItemEfeito>[];
+        if (jogo.player.itens.any((i) => i is CoroaInstavel)) {
+          for (var i = 1; i < CoroaInstavel.opcoes; i++) {
+            final outro = jogo.sortearItemEfeito();
+            if (outro != null) alternativas.add(outro);
+          }
+        }
+        return (familia: 0, item: item, alternativas: alternativas);
+      }
     }
     final int familiaFinal;
     if (escolhida != 0) {
@@ -90,7 +121,7 @@ class PedestalComponent extends Obstacle {
     } else {
       familiaFinal = rng.nextBool() ? 1 : 2;
     }
-    return (familia: familiaFinal, item: null);
+    return (familia: familiaFinal, item: null, alternativas: const []);
   }
 
   @override
@@ -139,9 +170,10 @@ class PedestalComponent extends Obstacle {
   @override
   void update(double dt) {
     super.update(dt);
+    _alternarOferta(dt);
     if (irmaos.isEmpty || !hasItem) return;
 
-    if (children.whereType<Collectible>().isNotEmpty) {
+    if (temColetavel) {
       _itemApareceu = true;
       return;
     }
@@ -153,6 +185,42 @@ class PedestalComponent extends Obstacle {
     for (final outro in irmaos) {
       outro.encerrarOferta();
     }
+  }
+
+  /// Há um coletável aqui — ou um a caminho, no meio da troca da
+  /// `CoroaInstavel`. É o que os observadores devem ler, e não `children`.
+  bool get temColetavel {
+    final novo = _trocaMontando;
+    if (novo != null && !novo.isMounted && !novo.isRemoved) return true;
+    return children.whereType<Collectible>().isNotEmpty;
+  }
+
+  void _alternarOferta(double dt) {
+    final principal = itemEfeito;
+    if (principal == null || alternativas.isEmpty || !hasItem) return;
+    final novo = _trocaMontando;
+    if (novo != null && !novo.isMounted && !novo.isRemoved) return;
+
+    _tempoTroca += dt;
+    if (_tempoTroca < intervaloCoroa) return;
+    _tempoTroca = 0.0;
+
+    final atual = children.whereType<ItemEfeitoPickup>().toList();
+    // Já levado (ou sendo levado neste quadro): nada pra trocar. Sem esta
+    // guarda, o item coletado sairia e outro nasceria no lugar.
+    if (atual.isEmpty || atual.any((c) => c.isRemoving)) return;
+    for (final c in atual) {
+      c.removeFromParent();
+    }
+
+    final ofertas = [principal, ...alternativas];
+    _indiceOferta = (_indiceOferta + 1) % ofertas.length;
+    final proximo = ItemEfeitoPickup(
+      position: Vector2(8, -4),
+      item: ofertas[_indiceOferta],
+    );
+    _trocaMontando = proximo;
+    add(proximo);
   }
 
   /// Tira o item daqui porque a escolha foi feita no outro pedestal.

@@ -46,6 +46,12 @@ class ProgressaoItens {
     RelogioParado(), //     nível 28
     Enxame(), //            nível 29
     Telecinese(), //        nível 30
+    Furia(), //             nível 31
+    Pureza(), //            nível 32
+    Contrato(), //          nível 33
+    CoroaInstavel(), //     nível 34
+    Heranca(), //           nível 35
+    OlhoNoOlho(), //        nível 36
   ];
 
   /// XP pra passar do nível [nivel] pro seguinte (nível 0 → 1 custa 30).

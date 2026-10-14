@@ -415,6 +415,17 @@ class Player extends PositionComponent
   /// Sala em que a `Bencao` já anulou um golpe. Outra sala = bênção pronta.
   Object? salaDaBencaoGasta;
 
+  /// Sala em que a `Furia` está contando golpes, e quantos já levou nela.
+  /// Outra sala = contagem zerada.
+  Object? salaDaFuria;
+  int golpesDaFuria = 0;
+
+  /// Sala em que a `Pureza` sorteou o bônus atual, e qual ele é (índice em
+  /// `Pureza.bonus`). -1 = perdido até a próxima sala.
+  Object? salaDaPureza;
+  int bonusDaPureza = -1;
+  double pulsoDaPureza = 0.0;
+
   Vector2 velocity = Vector2.zero();
   Vector2 knockbackVelocity = Vector2.zero();
   Vector2 plrDir = Vector2(0, 1);

@@ -1,4 +1,3 @@
-import 'package:creatures_rogue/game/components/items/collectible.dart';
 import 'package:creatures_rogue/game/game_settings.dart';
 import 'dart:math';
 import 'package:creatures_rogue/game/components/items/item_efeito.dart';
@@ -242,6 +241,7 @@ class RoomComponent extends PositionComponent with HasGameRef {
       position: centro,
       familia: oferta.familia,
       itemEfeito: oferta.item,
+      alternativas: oferta.alternativas,
     );
     _pedestalDesafio = pedestal;
     parent?.add(pedestal);
@@ -258,7 +258,7 @@ class RoomComponent extends PositionComponent with HasGameRef {
     final pedestal = _pedestalDesafio;
     if (pedestal == null || _ondaDesafio > 0) return;
 
-    final temItem = pedestal.children.whereType<Collectible>().isNotEmpty;
+    final temItem = pedestal.temColetavel;
     if (temItem) {
       _itemDesafioApareceu = true;
       return;
@@ -371,6 +371,7 @@ class RoomComponent extends PositionComponent with HasGameRef {
           position: centro + Vector2(desvio * _passoPedestais, 0),
           familia: oferta.familia,
           itemEfeito: oferta.item,
+          alternativas: oferta.alternativas,
         ),
       );
     }
@@ -836,7 +837,11 @@ class RoomComponent extends PositionComponent with HasGameRef {
       return;
     }
 
-    _spawnTurma(floor + _random.nextInt(3));
+    var quantidade = floor + _random.nextInt(3);
+    if (player.itens.any((i) => i is Contrato)) {
+      quantidade += min((quantidade / 2).ceil(), Contrato.extrasMax);
+    }
+    _spawnTurma(quantidade);
   }
 
   /// Nasce [count] inimigos em posições livres da sala. Separado de

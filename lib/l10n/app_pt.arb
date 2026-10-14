@@ -562,5 +562,21 @@
   "item_enxame": "ENXAME",
   "item_enxameDesc": "PERDER VIDA SOLTA BICHOS QUE PERSEGUEM OS INIMIGOS",
   "item_telecinese": "TELECINESE",
-  "item_telecineseDesc": "SEUS TIROS CURVAM ATÉ O INIMIGO MAIS PRÓXIMO"
+  "item_telecineseDesc": "SEUS TIROS CURVAM ATÉ O INIMIGO MAIS PRÓXIMO",
+  "item_furia": "FÚRIA",
+  "item_furiaDesc": "CADA GOLPE QUE VOCÊ LEVA AUMENTA SEU DANO ATÉ SAIR DA SALA",
+  "item_pureza": "PUREZA",
+  "item_purezaDesc": "CADA SALA DÁ UM BÔNUS SORTEADO, QUE SOME SE VOCÊ APANHAR",
+  "item_contrato": "CONTRATO",
+  "item_contratoDesc": "MAIS INIMIGOS NAS SALAS, MAS ELES LARGAM MOEDAS E CORAÇÕES",
+  "item_coroaInstavel": "COROA INSTÁVEL",
+  "item_coroaInstavelDesc": "OS ITENS DOS PEDESTAIS SE ALTERNAM, A PARTIR DO PRÓXIMO ANDAR",
+  "item_heranca": "HERANÇA",
+  "item_herancaDesc": "SE MORRER, A PRÓXIMA RUN COMEÇA COM UM ITEM",
+  "item_olhoNoOlho": "OLHO NO OLHO",
+  "item_olhoNoOlhoDesc": "MAIS DANO DE PERTO, MENOS DE LONGE",
+  "effect_heranca": "HERANÇA: {item}",
+  "@effect_heranca": {
+    "placeholders": { "item": {} }
+  }
 }

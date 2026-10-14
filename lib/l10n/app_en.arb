@@ -514,5 +514,18 @@
   "item_enxame": "SWARM",
   "item_enxameDesc": "LOSING HEALTH RELEASES BUGS THAT CHASE ENEMIES",
   "item_telecinese": "TELEKINESIS",
-  "item_telecineseDesc": "YOUR SHOTS CURVE TOWARD THE NEAREST ENEMY"
+  "item_telecineseDesc": "YOUR SHOTS CURVE TOWARD THE NEAREST ENEMY",
+  "item_furia": "FURY",
+  "item_furiaDesc": "EACH HIT YOU TAKE RAISES YOUR DAMAGE UNTIL YOU LEAVE THE ROOM",
+  "item_pureza": "PURITY",
+  "item_purezaDesc": "EACH ROOM GIVES A RANDOM BONUS, LOST IF YOU GET HIT",
+  "item_contrato": "CONTRACT",
+  "item_contratoDesc": "MORE ENEMIES IN ROOMS, BUT THEY DROP COINS AND HEARTS",
+  "item_coroaInstavel": "GLITCHED CROWN",
+  "item_coroaInstavelDesc": "PEDESTAL ITEMS CYCLE, STARTING NEXT FLOOR",
+  "item_heranca": "INHERITANCE",
+  "item_herancaDesc": "IF YOU DIE, YOUR NEXT RUN STARTS WITH AN ITEM",
+  "item_olhoNoOlho": "EYE TO EYE",
+  "item_olhoNoOlhoDesc": "MORE DAMAGE UP CLOSE, LESS FROM AFAR",
+  "effect_heranca": "INHERITANCE: {item}"
 }

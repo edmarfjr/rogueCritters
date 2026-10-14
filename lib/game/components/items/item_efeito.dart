@@ -19,6 +19,7 @@ import 'package:creatures_rogue/game/components/projeteis/explosion_hitbox.dart'
 import 'package:creatures_rogue/game/components/projeteis/orbit_projectile.dart';
 import 'package:creatures_rogue/game/components/projeteis/projectile.dart';
 import 'package:creatures_rogue/game/components/items/coin_pickup.dart';
+import 'package:creatures_rogue/game/components/items/heart_half_pickup.dart';
 import 'package:creatures_rogue/game/components/items/xp_pickup.dart';
 import 'package:creatures_rogue/game/components/map/obstacle.dart';
 import 'package:creatures_rogue/game/components/effects/text_effect.dart';
@@ -251,6 +252,12 @@ class ItemEfeitoRegistry {
     RelogioParado(),
     Enxame(),
     Telecinese(),
+    Furia(),
+    Pureza(),
+    Contrato(),
+    CoroaInstavel(),
+    Heranca(),
+    OlhoNoOlho(),
   ];
 
   static ItemEfeito? porId(String id) {
@@ -3513,5 +3520,243 @@ class Telecinese extends ItemEfeito {
   @override
   void aoAtualizar(Player player, double dt) {
     if (player.guiamentoTiros < 4.0) player.guiamentoTiros = 4.0;
+  }
+}
+
+/// Cada golpe recebido aumenta o dano até sair da sala (Bloody Lust) — conta
+/// todo golpe que chega, mesmo evadido, anulado ou comido pelo escudo. Os
+/// i-frames depois de cada golpe já seguram o ritmo da contagem.
+/// Teto em [teto]: sem ele, uma sala de boss longa viraria dano infinito.
+/// Oposto da `Pureza`, que premia NÃO apanhar.
+class Furia extends ItemEfeito {
+  const Furia();
+
+  static const double porGolpe = 0.15;
+  static const double teto = 0.60;
+
+  @override
+  String get id => 'furia';
+  @override
+  String get spritePath => 'items/raiva.png';
+  @override
+  Color get cor1 => Palette.vermelho;
+  @override
+  Color get cor2 => Palette.burgundy;
+  @override
+  String nome(BuildContext context) => context.l10n.item_furia;
+  @override
+  String descricao(BuildContext context) => context.l10n.item_furiaDesc;
+
+  @override
+  void aoAtualizar(Player player, double dt) {
+    final sala = player.currentRoom;
+    if (sala != null && sala != player.salaDaFuria) {
+      player.salaDaFuria = sala;
+      player.golpesDaFuria = 0;
+    }
+    Player.danoMultDerivado *=
+        1.0 + min(porGolpe * player.golpesDaFuria, teto);
+  }
+
+  @override
+  void aoTentarTomarDano(Player player, double amount) {
+    player.golpesDaFuria++;
+    player.parent?.add(
+      AuraPulseEffect(
+        position: player.position.clone(),
+        raio: 14,
+        cor1: cor1,
+        cor2: cor2,
+      ),
+    );
+  }
+}
+
+/// Ao entrar numa sala, ganha um bônus sorteado — dano, velocidade ou
+/// cadência — até perder vida (Purity). Um pulso da cor do bônus diz qual
+/// está valendo. Sumiu, só volta na próxima sala.
+class Pureza extends ItemEfeito {
+  const Pureza();
+
+  /// Cor de cada bônus, na ordem do índice `Player.bonusDaPureza`:
+  /// 0 = dano, 1 = velocidade, 2 = cadência.
+  static const List<Color> bonus = [
+    Palette.vermelho,
+    Palette.azul,
+    Palette.amarelo,
+  ];
+
+  static const double intervaloPulso = 1.0;
+
+  @override
+  String get id => 'pureza';
+  @override
+  String get spritePath => 'items/pureza.png';
+  @override
+  Color get cor1 => Palette.branco;
+  @override
+  Color get cor2 => Palette.azul;
+  @override
+  String nome(BuildContext context) => context.l10n.item_pureza;
+  @override
+  String descricao(BuildContext context) => context.l10n.item_purezaDesc;
+
+  @override
+  void aoAtualizar(Player player, double dt) {
+    final sala = player.currentRoom;
+    if (sala != null && sala != player.salaDaPureza) {
+      player.salaDaPureza = sala;
+      player.bonusDaPureza = Random().nextInt(bonus.length);
+      player.pulsoDaPureza = 0.0;
+    }
+
+    switch (player.bonusDaPureza) {
+      case 0:
+        Player.danoMultDerivado *= 1.25;
+      case 1:
+        player.velMultDerivado *= 1.2;
+      case 2:
+        player.cdMultDerivado *= 0.8;
+      default:
+        return;
+    }
+
+    player.pulsoDaPureza -= dt;
+    if (player.pulsoDaPureza > 0) return;
+    player.pulsoDaPureza = intervaloPulso;
+    final cor = bonus[player.bonusDaPureza];
+    player.parent?.add(
+      AuraPulseEffect(
+        position: player.position.clone(),
+        raio: 12,
+        cor1: cor,
+        cor2: cor,
+        duracao: 0.4,
+      ),
+    );
+  }
+
+  @override
+  void aoPerderVida(Player player, double dano) {
+    player.bonusDaPureza = -1;
+  }
+}
+
+/// Salas de combate nascem com mais inimigos, e cada um pode largar moeda
+/// ou meio coração (Contract from Below). Os extras são somados em
+/// `RoomComponent._spawnEnemies`, com teto em [extrasMax] pra não lotar as
+/// salas pequenas. Sala de boss e ondas do desafio ficam de fora.
+class Contrato extends ItemEfeito {
+  const Contrato();
+
+  static const int extrasMax = 3;
+  static const double chanceMoeda = 0.20;
+  static const double chanceCoracao = 0.05;
+
+  @override
+  String get id => 'contrato';
+  @override
+  String get spritePath => 'items/contrato.png';
+  @override
+  Color get cor1 => Palette.vermelho;
+  @override
+  Color get cor2 => Palette.preto;
+  @override
+  String nome(BuildContext context) => context.l10n.item_contrato;
+  @override
+  String descricao(BuildContext context) => context.l10n.item_contratoDesc;
+
+  @override
+  void aoMatarInimigo(Player player, Enemy alvo) {
+    if (alvo.ehBoss) return;
+    final sorte = Random().nextDouble();
+    if (sorte < chanceCoracao) {
+      alvo.parent?.add(HeartHalfPickup(position: alvo.position.clone()));
+    } else if (sorte < chanceCoracao + chanceMoeda) {
+      alvo.parent?.add(CoinPickup(position: alvo.position.clone()));
+    }
+  }
+}
+
+/// O item de cada pedestal de item se alterna entre [opcoes] ofertas a cada
+/// `PedestalComponent.intervaloCoroa` segundos; leva o que estiver lá na
+/// hora do toque (Glitched Crown). As alternativas são tiradas da pool junto
+/// com a oferta principal (ver `PedestalComponent.sortearOferta`), então as
+/// recusadas não voltam. Vale do andar SEGUINTE em diante, pelo mesmo motivo
+/// do `BauDoTesouro`: os pedestais nascem junto com o andar.
+class CoroaInstavel extends ItemEfeito {
+  const CoroaInstavel();
+
+  static const int opcoes = 3;
+
+  @override
+  String get id => 'coroaInstavel';
+  @override
+  String get spritePath => 'items/coroa.png';
+  @override
+  Color get cor1 => Palette.amarelo;
+  @override
+  Color get cor2 => Palette.laranja;
+  @override
+  String nome(BuildContext context) => context.l10n.item_coroaInstavel;
+  @override
+  String descricao(BuildContext context) =>
+      context.l10n.item_coroaInstavelDesc;
+}
+
+/// Morrer com este item faz a PRÓXIMA run começar com um item sorteado
+/// (Eden's Blessing). Não tem gancho: o fim de run grava a marca
+/// (`CreaturesRogueGame._handleGameOver`) e o começo da seguinte a gasta
+/// (`CreaturesRogueGame.startRun`). Vitória não conta — a herança é consolo.
+class Heranca extends ItemEfeito {
+  const Heranca();
+
+  @override
+  String get id => 'heranca';
+  @override
+  String get spritePath => 'items/heranca.png';
+  @override
+  Color get cor1 => Palette.marrom;
+  @override
+  Color get cor2 => Palette.amarelo;
+  @override
+  String nome(BuildContext context) => context.l10n.item_heranca;
+  @override
+  String descricao(BuildContext context) => context.l10n.item_herancaDesc;
+}
+
+/// Mais dano de perto, menos de longe (Proptosis). Medido pela distância
+/// entre o jogador e o alvo NA HORA do golpe, não pelo voo do projétil: vale
+/// igual pra tiro, explosão e golpe corpo a corpo.
+class OlhoNoOlho extends ItemEfeito {
+  const OlhoNoOlho();
+
+  /// Até aqui, bônus cheio.
+  static const double perto = 24.0;
+
+  /// Daqui em diante, penalidade cheia.
+  static const double longe = 96.0;
+
+  static const double fatorPerto = 1.4;
+  static const double fatorLonge = 0.75;
+
+  @override
+  String get id => 'olhoNoOlho';
+  @override
+  String get spritePath => 'items/olho.png';
+  @override
+  Color get cor1 => Palette.branco;
+  @override
+  Color get cor2 => Palette.vermelho;
+  @override
+  String nome(BuildContext context) => context.l10n.item_olhoNoOlho;
+  @override
+  String descricao(BuildContext context) => context.l10n.item_olhoNoOlhoDesc;
+
+  @override
+  double ajustarGolpe(Player player, Enemy alvo, double dano) {
+    final d = player.position.distanceTo(alvo.position);
+    final t = ((d - perto) / (longe - perto)).clamp(0.0, 1.0);
+    return dano * (fatorPerto + (fatorLonge - fatorPerto) * t);
   }
 }

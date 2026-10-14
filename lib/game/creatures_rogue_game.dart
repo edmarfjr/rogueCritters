@@ -835,6 +835,7 @@ class CreaturesRogueGame extends FlameGame
       currentLevel = 1;
       currentFloor = 1;
       runBoss = BossRegistry.sortear(_bossRandom, currentLevel);
+      _receberHeranca();
     }
 
     // Depois do save ser aplicado / do andar ser zerado acima: `salasDoAndar`
@@ -2330,6 +2331,23 @@ class CreaturesRogueGame extends FlameGame
   /// [ehUltimaDungeon]). Mesma mecanica do Game Over — tira a Hud, pausa e
   /// apaga o save —, porque em ambos a run terminou e nao ha pra onde
   /// continuar.
+  /// Gasta a marca da `Heranca`: a run nova começa com um item da pool, já
+  /// no inventário, e o nome dele sobe acima do jogador.
+  void _receberHeranca() {
+    if (!CreatureProgress.instance.herancaPendente) return;
+    unawaited(CreatureProgress.instance.marcarHeranca(false));
+    final item = sortearItemEfeito();
+    if (item == null) return;
+    player.itens.add(item);
+    dungeonWorld.add(
+      TextEffect(
+        text: buildContext!.l10n.effect_heranca(item.nome(buildContext!)),
+        position: player.position.clone() + Vector2(0, -player.size.y / 2 - 4),
+        color: Palette.amarelo,
+      ),
+    );
+  }
+
   /// XP de progressão desta run: andar alcançado pesa mais, boss e vitória
   /// dão bônus, abate vale pouco (a quantidade de inimigos já cresce com o
   /// andar, então pesar abate contaria o progresso duas vezes). Moeda fica de
@@ -2385,6 +2403,9 @@ class CreaturesRogueGame extends FlameGame
     overlays.remove('Hud');
     unawaited(RunSave.instance.apagar());
     _premiarProgressao(vitoria: false);
+    if (player.itens.any((i) => i is Heranca)) {
+      unawaited(CreatureProgress.instance.marcarHeranca(true));
+    }
     // Aqui, e não em `_mostrarGameOver`: a faixa entra junto com a cena de
     // morte, que é quando a run acabou de fato. RESTART volta pra trilha da
     // run sozinho — `startRun` toca `GameMusic.run`.

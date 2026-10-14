@@ -21,6 +21,7 @@ class CreatureProgress {
   static const _xpProgressaoKey = 'creatures_rogue.xp_progressao';
   static const _vitoriasContagemKey = 'creatures_rogue.vitorias_contagem';
   static const _tempoTotalKey = 'creatures_rogue.tempo_total';
+  static const _herancaKey = 'creatures_rogue.heranca';
 
   /// Ninguém começa liberado: a primeira criatura vem da escolha no fim da
   /// intro (ver `IntroOverlay`), e é a única jogável na primeira run. A lista
@@ -84,6 +85,7 @@ class CreatureProgress {
     await _prefs.setInt(_xpProgressaoKey, 0);
     await _prefs.setInt(_vitoriasContagemKey, 0);
     await _prefs.setDouble(_tempoTotalKey, 0.0);
+    await _prefs.remove(_herancaKey);
     await _prefs.setBool(_introKey, false);
   }
 
@@ -131,6 +133,12 @@ class CreatureProgress {
       ids.where(_unlockedIds.contains).length;
 
   int get nivelProgressao => ProgressaoItens.nivelPara(xpProgressao);
+
+  /// A run passada morreu com a `Heranca`: a próxima começa com um item.
+  bool get herancaPendente => _prefs.getBool(_herancaKey) ?? false;
+
+  Future<void> marcarHeranca(bool pendente) =>
+      _prefs.setBool(_herancaKey, pendente);
 
   Future<void> ganharXpProgressao(int xp) async {
     if (xp <= 0) return;
