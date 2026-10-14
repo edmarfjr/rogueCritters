@@ -630,5 +630,10 @@
   "evento_cura": "+MEIO CORAÇÃO",
   "evento_consumivel": "ALGO CAIU NO CHÃO!",
   "evento_item": "UM ITEM APARECEU!",
-  "evento_nada": "NADA ACONTECEU..."
+  "evento_nada": "NADA ACONTECEU...",
+  "afinidade_previa": "ATIVA: AFINIDADE {tipo} {nivel}",
+  "@afinidade_previa": {
+    "placeholders": { "tipo": {}, "nivel": { "type": "int" } }
+  },
+  "afinidade_previaDiversidade": "ATIVA: DIVERSIDADE"
 }

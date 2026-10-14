@@ -23,6 +23,7 @@ import 'package:creatures_rogue/game/components/items/shop_stand.dart';
 import 'package:creatures_rogue/game/components/map/door.dart';
 import 'package:creatures_rogue/game/components/map/pedestal.dart';
 import 'package:creatures_rogue/game/components/map/evento.dart';
+import 'package:creatures_rogue/game/components/effects/aura_pulse_effect.dart';
 import 'package:creatures_rogue/game/components/creatures/wild_creature_npc.dart';
 import 'package:creatures_rogue/game/components/map/stairs.dart';
 import 'package:creatures_rogue/game/components/map/wall_barrier.dart';
@@ -702,6 +703,18 @@ class RoomComponent extends PositionComponent with HasGameRef {
   void _unlockRoom() {
     isLocked = false;
     data.isCleared = true;
+
+    // Afinidade de planta: chance de meio coração por sala limpa.
+    if (_random.nextDouble() < player.chanceCuraAoLimpar && player.heal(1)) {
+      parent?.add(
+        AuraPulseEffect(
+          position: player.position.clone(),
+          raio: 14,
+          cor1: Palette.verde,
+          cor2: Palette.verde,
+        ),
+      );
+    }
 
     for (var door in roomDoors) {
       door.open();

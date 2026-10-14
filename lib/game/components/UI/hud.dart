@@ -236,6 +236,41 @@ class Hud extends PositionComponent with HasGameRef {
     );
   }
 
+  /// Afinidade do grupo (ver `Afinidade`): quadradinho na cor do tipo com o
+  /// nível ao lado, apagado quando a criatura em campo não é do tipo. A
+  /// Diversidade mostra as cores dos três tipos do grupo, sempre acesa.
+  void _desenharAfinidade(Canvas canvas) {
+    final afinidade = game.afinidade;
+    if (!afinidade.ativa) return;
+    const x = 64.0;
+    const lado = 5.0;
+    const y = _evoBarY - 1;
+
+    final tipo = afinidade.tipo;
+    if (tipo == null) {
+      final tipos = game.grupo.nonNulls.map((m) => m.criatura.tipo).toList();
+      for (var i = 0; i < tipos.length; i++) {
+        canvas.drawRect(
+          Rect.fromLTWH(x + i * (lado + 1), y, lado, lado),
+          Paint()..color = UiTheme.corDoTipo(tipos[i]),
+        );
+      }
+      return;
+    }
+
+    final ligada = player.creatureData.tipo == tipo;
+    canvas.drawRect(
+      Rect.fromLTWH(x - 1, y - 1, lado + 2, lado + 2),
+      Paint()..color = UiTheme.hudMolduraCor,
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(x, y, lado, lado),
+      Paint()
+        ..color = UiTheme.corDoTipo(tipo).withAlpha(ligada ? 255 : 90),
+    );
+    textPaint.render(canvas, '${afinidade.nivel}', Vector2(x + lado + 2, y - 4));
+  }
+
   @override
   void render(Canvas canvas) {
     super.render(canvas);
@@ -317,6 +352,8 @@ class Hud extends PositionComponent with HasGameRef {
         _energiaFillPaint,
       );
     }
+
+    _desenharAfinidade(canvas);
 
     moedaSprite.render(
       canvas,

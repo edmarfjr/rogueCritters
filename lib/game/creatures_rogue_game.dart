@@ -51,6 +51,7 @@ import 'package:creatures_rogue/game/components/items/consumable_item.dart';
 import 'package:creatures_rogue/game/components/map/dungeon_generator.dart';
 import 'package:creatures_rogue/game/components/map/room_component.dart';
 import 'package:creatures_rogue/game/components/map/evento.dart';
+import 'package:creatures_rogue/game/components/creatures/afinidade.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/utils/palette_swapper.dart';
 import 'package:creatures_rogue/game/game_settings.dart';
@@ -249,12 +250,28 @@ class CreaturesRogueGame extends FlameGame
   /// Só a troca MANUAL respeita o cooldown. A troca forçada por desmaio
   /// (`pocketarSlotAtivo`) ignora: ali não há escolha, e travá-la deixaria o
   /// jogador sem criatura em campo.
-  static const double trocaCooldownMax = 3.0;
+  static const double trocaCooldownPadrao = 3.0;
   double trocaCooldown = 0.0;
+
+  /// Recarga cheia da troca agora: a padrão, ou metade com a Diversidade
+  /// (ver `Afinidade`).
+  double get trocaCooldownMax =>
+      afinidade.diversidade
+          ? trocaCooldownPadrao * Afinidade.fatorTrocaDiversidade
+          : trocaCooldownPadrao;
+
+  /// Recarga com que a última troca começou — a fração da Hud mede contra
+  /// ela, e não contra o [trocaCooldownMax] de agora, que muda se o grupo
+  /// mudar no meio da recarga.
+  double _trocaCooldownInicial = trocaCooldownPadrao;
 
   /// 0 = pronto pra trocar, 1 = acabou de trocar. Pra indicador da Hud.
   double get trocaCooldownFraction =>
-      (trocaCooldown / trocaCooldownMax).clamp(0.0, 1.0);
+      (trocaCooldown / _trocaCooldownInicial).clamp(0.0, 1.0);
+
+  /// Afinidade elemental do grupo inteiro (ver `Afinidade`).
+  Afinidade get afinidade =>
+      Afinidade.de(grupo.nonNulls.map((m) => m.criatura.tipo));
 
   /// Vai pra próxima criatura VIVA da lista, em laço. Usada pelo botão de
   /// troca e pelo toque duplo — o toque num retrato específico continua sendo
@@ -269,7 +286,7 @@ class CreaturesRogueGame extends FlameGame
     for (int i = 1; i < maxCompanions; i++) {
       final slot = (companionAtivoIndex + i) % maxCompanions;
       if (slotDisponivel(slot)) {
-        trocaCooldown = trocaCooldownMax;
+        trocaCooldown = _trocaCooldownInicial = trocaCooldownMax;
         _trocarParaSlot(slot);
         return;
       }
@@ -280,7 +297,7 @@ class CreaturesRogueGame extends FlameGame
     if (slot == companionAtivoIndex) return;
     if (trocaCooldown > 0) return;
     if (slotDisponivel(slot)) {
-      trocaCooldown = trocaCooldownMax;
+      trocaCooldown = _trocaCooldownInicial = trocaCooldownMax;
       _trocarParaSlot(slot);
     }
   }

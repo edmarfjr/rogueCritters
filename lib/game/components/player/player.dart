@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:creatures_rogue/game/components/creatures/afinidade.dart';
 import 'package:creatures_rogue/game/components/creatures/creature_progress.dart';
 import 'dart:math' as math;
 import 'dart:math';
@@ -212,6 +213,17 @@ class Player extends PositionComponent
   /// alvo. 0 = sem bônus.
   double bonusAlvoFerido = 0.0;
 
+  /// Bônus da afinidade elemental (ver `Afinidade`), derivados como os
+  /// outros: zerados todo quadro e reescritos por [_aplicarAfinidade].
+  /// Dano extra contra inimigo queimando (fogo).
+  double danoContraQueimando = 0.0;
+
+  /// Multiplicador da regeneração do escudo passivo (água).
+  double regenEscudoMult = 1.0;
+
+  /// Chance de curar meio coração ao limpar uma sala (planta).
+  double chanceCuraAoLimpar = 0.0;
+
   /// A passiva de aposentadoria do Meao (`SeteVidas`) já foi usada NESTE andar?
   /// Zerado por `CreaturesRogueGame` ao montar o andar seguinte.
   bool seteVidasUsada = false;
@@ -413,6 +425,26 @@ class Player extends PositionComponent
 
   /// Abates contados pelas `PresasDeVampiro` até a próxima cura.
   int abatesParaVampiro = 0;
+
+  /// Bônus de tipo da afinidade do grupo — só com uma criatura DAQUELE tipo
+  /// em campo. A Diversidade não passa aqui: ela mexe na troca, que é do
+  /// jogo (ver `CreaturesRogueGame.trocaCooldownMax`).
+  void _aplicarAfinidade(Afinidade afinidade) {
+    if (afinidade.tipo != creatureData.tipo) return;
+    final nivel = afinidade.nivel;
+    switch (afinidade.tipo) {
+      case CreatureType.fogo:
+        danoContraQueimando += Afinidade.danoContraQueimandoPorNivel * nivel;
+      case CreatureType.agua:
+        regenEscudoMult *= 1 + Afinidade.regenEscudoPorNivel * nivel;
+      case CreatureType.planta:
+        chanceCuraAoLimpar += Afinidade.curaAoLimparPorNivel * nivel;
+      case CreatureType.eletrico:
+        cdMultDerivado *= 1 - Afinidade.cooldownPorNivel * nivel;
+      default:
+        break;
+    }
+  }
 
   /// Toda entrada no inventário passa aqui: é o que alimenta o compêndio.
   void ganharItem(ItemEfeito item) {
@@ -777,6 +809,9 @@ class Player extends PositionComponent
     curaBloqueada = false;
     reducaoDanoDerivada = 0.0;
     bonusAlvoFerido = 0.0;
+    danoContraQueimando = 0.0;
+    regenEscudoMult = 1.0;
+    chanceCuraAoLimpar = 0.0;
     evasaoDerivada = 0.0;
     pilhasMiragem = 0;
     abatesSeguidos = 0;
@@ -1281,6 +1316,9 @@ class Player extends PositionComponent
     curaBloqueada = false;
     reducaoDanoDerivada = 0.0;
     bonusAlvoFerido = 0.0;
+    danoContraQueimando = 0.0;
+    regenEscudoMult = 1.0;
+    chanceCuraAoLimpar = 0.0;
     evasaoDerivada = 0.0;
     abatesSeguidos = 0;
     seteVidasUsada = false;
@@ -1591,6 +1629,9 @@ class Player extends PositionComponent
     curaBloqueada = false;
     reducaoDanoDerivada = 0.0;
     bonusAlvoFerido = 0.0;
+    danoContraQueimando = 0.0;
+    regenEscudoMult = 1.0;
+    chanceCuraAoLimpar = 0.0;
     evasaoDerivada = 0.0;
     for (final tipo in CreatureType.values) {
       danoElementalDerivado[tipo] = 1.0;
@@ -1599,6 +1640,10 @@ class Player extends PositionComponent
       item.aoAtualizar(this, dt);
     }
     creatureData.passive?.aoAtualizar(this, dt);
+    final jogoAfinidade = game;
+    if (jogoAfinidade is CreaturesRogueGame) {
+      _aplicarAfinidade(jogoAfinidade.afinidade);
+    }
     if (temEfeito(#focoDoRaio)) velMultDerivado *= _fatorFocoDoRaio;
 
     if (_contatoCooldown.isNotEmpty) {
@@ -1653,7 +1698,7 @@ class Player extends PositionComponent
     shieldVisual.setOpacity(shieldVisualActive && !submerso ? 1.0 : 0.0);
 
     if (shield <= shieldMax && !escudoTravado) {
-      _shieldRegenTimer += dt;
+      _shieldRegenTimer += dt * regenEscudoMult;
       if (_shieldRegenTimer >= shieldRegenInterval) {
         _shieldRegenTimer = 0.0;
         shield = (shield + shieldRegenAmount).clamp(0.0, shieldMax);

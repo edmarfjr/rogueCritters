@@ -757,6 +757,10 @@ abstract class Enemy extends PositionComponent
       for (final item in playerTarget.itens) {
         amountFinal = item.ajustarGolpe(playerTarget, this, amountFinal);
       }
+      // Afinidade de fogo: queimando, o alvo apanha mais.
+      if (dots.containsKey(DotKind.queimadura)) {
+        amountFinal *= 1 + playerTarget.danoContraQueimando;
+      }
     }
     if (doJogador && GameSettings.instance.godMode && amountFinal > 0) {
       amountFinal = health;

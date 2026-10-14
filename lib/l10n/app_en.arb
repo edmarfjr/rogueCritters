@@ -564,5 +564,7 @@
   "evento_cura": "+HALF A HEART",
   "evento_consumivel": "SOMETHING DROPPED!",
   "evento_item": "AN ITEM APPEARED!",
-  "evento_nada": "NOTHING HAPPENED..."
+  "evento_nada": "NOTHING HAPPENED...",
+  "afinidade_previa": "ACTIVATES: {tipo} AFFINITY {nivel}",
+  "afinidade_previaDiversidade": "ACTIVATES: DIVERSITY"
 }

@@ -4,6 +4,8 @@ import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/core/ui_theme.dart';
 import 'package:creatures_rogue/game/creatures_rogue_game.dart';
 import 'package:creatures_rogue/game/overlays/creature_select_overlay.dart';
+import 'package:creatures_rogue/game/components/creatures/afinidade.dart';
+import 'package:creatures_rogue/game/components/creatures/creature_data.dart';
 import 'package:creatures_rogue/l10n/l10n_extensions.dart';
 
 /// Ficha da criatura selvagem que o jogador encostou na sala da escada: a
@@ -28,23 +30,38 @@ class WildCreatureInfoOverlay extends StatelessWidget {
             // Mesmo teto da tela de seleção: o painel divide a altura em
             // frações e precisa de uma altura fechada pra isso.
             child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 480,
-                maxHeight: 440,
-              ),
+              constraints: const BoxConstraints(maxWidth: 480, maxHeight: 440),
               child: PainelDetalheCriatura(
                 creature: criatura,
-                rodape: Row(
+                rodape: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _botao(
-                      context.l10n.settings_voltar,
-                      () => game.fecharInfoCriaturaSelvagem(escolher: false),
-                    ),
-                    const SizedBox(width: 12),
-                    _botao(
-                      context.l10n.intro_escolher,
-                      () => game.fecharInfoCriaturaSelvagem(escolher: true),
+                    if (_previaAfinidade(context, criatura) case final previa?)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Text(
+                          previa,
+                          style: const TextStyle(
+                            color: UiTheme.txtCor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _botao(
+                          context.l10n.settings_voltar,
+                          () =>
+                              game.fecharInfoCriaturaSelvagem(escolher: false),
+                        ),
+                        const SizedBox(width: 12),
+                        _botao(
+                          context.l10n.intro_escolher,
+                          () => game.fecharInfoCriaturaSelvagem(escolher: true),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -53,6 +70,21 @@ class WildCreatureInfoOverlay extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  /// O que o grupo ganha de afinidade recrutando [criatura] — só quando muda
+  /// alguma coisa em relação ao grupo de agora.
+  String? _previaAfinidade(BuildContext context, CreatureData criatura) {
+    final tipos = game.grupo.nonNulls.map((m) => m.criatura.tipo).toList();
+    final antes = Afinidade.de(tipos);
+    final depois = Afinidade.de([...tipos, criatura.tipo]);
+    if (!depois.ativa || depois == antes) return null;
+    final tipo = depois.tipo;
+    if (tipo == null) return context.l10n.afinidade_previaDiversidade;
+    return context.l10n.afinidade_previa(
+      CreatureSelectOverlay.typeLabel(context, tipo),
+      depois.nivel,
     );
   }
 
