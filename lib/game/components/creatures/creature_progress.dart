@@ -22,6 +22,9 @@ class CreatureProgress {
   static const _vitoriasContagemKey = 'creatures_rogue.vitorias_contagem';
   static const _tempoTotalKey = 'creatures_rogue.tempo_total';
   static const _herancaKey = 'creatures_rogue.heranca';
+  static const _itensColetadosKey = 'creatures_rogue.itens_coletados';
+  static const _itensVistosKey = 'creatures_rogue.itens_vistos';
+  static const _evolucoesKey = 'creatures_rogue.evolucoes_vistas';
 
   /// Ninguém começa liberado: a primeira criatura vem da escolha no fim da
   /// intro (ver `IntroOverlay`), e é a única jogável na primeira run. A lista
@@ -31,6 +34,11 @@ class CreatureProgress {
   late final SharedPreferences _prefs;
   Set<String> _unlockedIds = {};
   Set<String> _vitoriasIds = {};
+
+  /// Registros do compêndio (ver `CompendioOverlay`), por id.
+  Set<String> _itensColetados = {};
+  Set<String> _itensVistos = {};
+  Set<String> _evolucoes = {};
   bool _loaded = false;
 
   bool get isLoaded => _loaded;
@@ -40,6 +48,10 @@ class CreatureProgress {
     _prefs = await SharedPreferences.getInstance();
     _unlockedIds = (_prefs.getStringList(_unlockedKey) ?? defaultUnlocked).toSet();
     _vitoriasIds = (_prefs.getStringList(_vitoriasKey) ?? const []).toSet();
+    _itensColetados =
+        (_prefs.getStringList(_itensColetadosKey) ?? const []).toSet();
+    _itensVistos = (_prefs.getStringList(_itensVistosKey) ?? const []).toSet();
+    _evolucoes = (_prefs.getStringList(_evolucoesKey) ?? const []).toSet();
     _loaded = true;
   }
 
@@ -86,6 +98,12 @@ class CreatureProgress {
     await _prefs.setInt(_vitoriasContagemKey, 0);
     await _prefs.setDouble(_tempoTotalKey, 0.0);
     await _prefs.remove(_herancaKey);
+    _itensColetados = {};
+    _itensVistos = {};
+    _evolucoes = {};
+    await _prefs.remove(_itensColetadosKey);
+    await _prefs.remove(_itensVistosKey);
+    await _prefs.remove(_evolucoesKey);
     await _prefs.setBool(_introKey, false);
   }
 
@@ -133,6 +151,40 @@ class CreatureProgress {
       ids.where(_unlockedIds.contains).length;
 
   int get nivelProgressao => ProgressaoItens.nivelPara(xpProgressao);
+
+  // ---------------------------------------------------------- compêndio
+  //
+  // Sem o atalho do god mode na leitura, como [venceuCom]: é registro do que
+  // o jogador fez. E o god mode também não ESCREVE aqui — com ele todo item
+  // cai na run, e uma sessão de teste encheria o compêndio de mentira.
+
+  /// Já matou esta criatura ou já jogou com ela (desbloqueio real).
+  bool criaturaVista(String creatureId) =>
+      _unlockedIds.contains(creatureId) || killCount(creatureId) > 0;
+
+  bool itemColetado(String itemId) => _itensColetados.contains(itemId);
+
+  /// Apareceu num pedestal ou na loja com o jogador na sala. Coletado conta
+  /// como visto.
+  bool itemVisto(String itemId) =>
+      _itensVistos.contains(itemId) || _itensColetados.contains(itemId);
+
+  /// Esta criatura já evoluiu alguma vez nas mãos do jogador.
+  bool evolucaoVista(String creatureId) => _evolucoes.contains(creatureId);
+
+  Future<void> registrarItemColetado(String itemId) =>
+      _registrar(_itensColetados, _itensColetadosKey, itemId);
+
+  Future<void> registrarItemVisto(String itemId) =>
+      _registrar(_itensVistos, _itensVistosKey, itemId);
+
+  Future<void> registrarEvolucao(String creatureId) =>
+      _registrar(_evolucoes, _evolucoesKey, creatureId);
+
+  Future<void> _registrar(Set<String> registro, String chave, String id) async {
+    if (GameSettings.instance.godMode || !registro.add(id)) return;
+    await _prefs.setStringList(chave, registro.toList());
+  }
 
   /// A run passada morreu com a `Heranca`: a próxima começa com um item.
   bool get herancaPendente => _prefs.getBool(_herancaKey) ?? false;

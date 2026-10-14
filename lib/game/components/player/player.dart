@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:creatures_rogue/game/components/creatures/creature_progress.dart';
 import 'dart:math' as math;
 import 'dart:math';
 import 'dart:ui' as ui;
@@ -412,6 +414,12 @@ class Player extends PositionComponent
   /// Abates contados pelas `PresasDeVampiro` até a próxima cura.
   int abatesParaVampiro = 0;
 
+  /// Toda entrada no inventário passa aqui: é o que alimenta o compêndio.
+  void ganharItem(ItemEfeito item) {
+    itens.add(item);
+    unawaited(CreatureProgress.instance.registrarItemColetado(item.id));
+  }
+
   /// Sala em que a `Bencao` já anulou um golpe. Outra sala = bênção pronta.
   Object? salaDaBencaoGasta;
 
@@ -577,6 +585,7 @@ class Player extends PositionComponent
     final proxima = creatureData.evoluir!();
     creatureData = proxima;
     evoluida = true;
+    unawaited(CreatureProgress.instance.registrarEvolucao(base.id));
     // Zera, e NAO fixa em xpParaEvoluir: a segunda contagem (rumo a
     // aposentadoria) comeca do zero. Fixado no teto, a criatura se
     // aposentaria no mesmo instante em que evoluisse.

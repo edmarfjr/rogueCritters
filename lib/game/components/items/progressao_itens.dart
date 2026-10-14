@@ -83,6 +83,12 @@ class ProgressaoItens {
 
   static bool ehMaximo(int nivel) => nivel >= porNivel.length;
 
+  /// Nível que libera [item], ou `null` se ele começa liberado.
+  static int? nivelDoItem(ItemEfeito item) {
+    final posicao = porNivel.indexWhere((i) => i.id == item.id);
+    return posicao == -1 ? null : posicao + 1;
+  }
+
   /// O item ainda está atrás de um nível que [nivel] não alcançou?
   static bool bloqueado(ItemEfeito item, int nivel) {
     final posicao = porNivel.indexWhere((i) => i.id == item.id);

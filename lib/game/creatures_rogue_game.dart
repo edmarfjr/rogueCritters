@@ -635,7 +635,7 @@ class CreaturesRogueGame extends FlameGame
     // Duplicata não empilha, mas a criatura sai do grupo de qualquer jeito: a
     // barra encheu, a despedida acontece. Só não há prêmio novo.
     if (!player.itens.any((i) => i.id == passiva.id)) {
-      player.itens.add(passiva);
+      player.ganharItem(passiva);
     }
     poolAposentadoria.remove(criatura.id);
 
@@ -1081,6 +1081,11 @@ class CreaturesRogueGame extends FlameGame
             .nonNulls,
       );
     poolItens.removeWhere((i) => player.itens.any((p) => p.id == i.id));
+    // A run salva pode vir de antes do compêndio: o que ela carrega entra
+    // nele agora.
+    for (final item in player.itens) {
+      unawaited(CreatureProgress.instance.registrarItemColetado(item.id));
+    }
     player.velMult = (j['velMult'] as num).toDouble();
     player.cdMult = (j['cdMult'] as num).toDouble();
     Player.danoMult = (j['danoMult'] as num).toDouble();
@@ -2338,7 +2343,7 @@ class CreaturesRogueGame extends FlameGame
     unawaited(CreatureProgress.instance.marcarHeranca(false));
     final item = sortearItemEfeito();
     if (item == null) return;
-    player.itens.add(item);
+    player.ganharItem(item);
     dungeonWorld.add(
       TextEffect(
         text: buildContext!.l10n.effect_heranca(item.nome(buildContext!)),

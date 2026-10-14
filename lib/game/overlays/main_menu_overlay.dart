@@ -156,6 +156,15 @@ class MainMenuOverlay extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         _botao(
+          context.l10n.menu_compendio,
+          20,
+          withBtnSfx(() {
+            game.overlays.remove('MainMenu');
+            game.overlays.add('Compendio');
+          }),
+        ),
+        const SizedBox(height: 10),
+        _botao(
           context.l10n.menu_configuracoes,
           20,
           withBtnSfx(() {

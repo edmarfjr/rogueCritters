@@ -455,9 +455,10 @@ class RoomComponent extends PositionComponent with HasGameRef {
             final jogo = game;
             if (jogo is! CreaturesRogueGame) return false;
             if (!jogo.consumirItemEfeito(itemEfeito)) return false;
-            p.itens.add(itemEfeito);
+            p.ganharItem(itemEfeito);
             return true;
           },
+          itemEfeito: itemEfeito,
           msgFalha: game.buildContext!.l10n.effect_jaTemItem,
           descricao: itemEfeito.descricao,
           repor: balcaoEspecial,

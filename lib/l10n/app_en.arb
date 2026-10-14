@@ -527,5 +527,16 @@
   "item_herancaDesc": "IF YOU DIE, YOUR NEXT RUN STARTS WITH AN ITEM",
   "item_olhoNoOlho": "EYE TO EYE",
   "item_olhoNoOlhoDesc": "MORE DAMAGE UP CLOSE, LESS FROM AFAR",
-  "effect_heranca": "INHERITANCE: {item}"
+  "effect_heranca": "INHERITANCE: {item}",
+  "menu_compendio": "COMPENDIUM",
+  "compendio_criaturas": "CREATURES",
+  "compendio_itens": "ITEMS",
+  "compendio_passivas": "PASSIVES",
+  "compendio_abates": "KILLS: {n}",
+  "compendio_evolucao": "EVOLUTION",
+  "compendio_base": "BASE",
+  "compendio_naoEncontrado": "NOT FOUND YET",
+  "compendio_naoColetado": "SEEN, BUT NOT COLLECTED YET",
+  "compendio_liberaNoNivel": "UNLOCKS AT LEVEL {n}",
+  "compendio_toqueNumItem": "TAP AN ITEM TO SEE ITS DETAILS"
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:creatures_rogue/game/overlays/victory_overlay.dart';
+import 'package:creatures_rogue/game/overlays/compendio_overlay.dart';
 import 'package:creatures_rogue/game/overlays/retirement_overlay.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/core/ui_theme.dart';
@@ -86,6 +87,7 @@ void main() async {
         'WildCreatureInfo': (context, game) =>
             WildCreatureInfoOverlay(game: game),
         'MainMenu': (context, game) => MainMenuOverlay(game: game),
+        'Compendio': (context, game) => CompendioOverlay(game: game),
         'Settings': (context, game) => SettingsOverlay(game: game),
         'Intro': (context, game) => IntroOverlay(game: game),
         'CreatureSelect': (context, game) => CreatureSelectOverlay(game: game),

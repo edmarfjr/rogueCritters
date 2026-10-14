@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:creatures_rogue/game/components/creatures/passives/roda_de_fogo.dart';
 
 import 'package:creatures_rogue/game/components/creatures/creature_data.dart';
+import 'package:creatures_rogue/game/components/creatures/creature_progress.dart';
 import 'package:creatures_rogue/game/components/creatures/creature_type.dart';
 import 'package:creatures_rogue/game/components/effects/efeitos_temporarios.dart';
 import 'package:creatures_rogue/game/components/player/player.dart';
@@ -3221,6 +3222,19 @@ class PassivasAposentadoria {
   static ItemEfeito? de(String creatureId) => porCriatura[creatureId];
 }
 
+/// Marca [item] como visto no compêndio quando o jogador está na mesma sala
+/// que [quem]. Pela sala, e não pela criação: o andar inteiro nasce de uma
+/// vez, e os pedestais das salas ainda não andadas contariam como vistos.
+/// Devolve true quando registrou — quem chama para de perguntar.
+bool registrarSeVisto(PositionComponent quem, ItemEfeito item) {
+  final jogo = quem.findGame();
+  if (jogo is! CreaturesRogueGame) return false;
+  final sala = jogo.player.currentRoom;
+  if (sala == null || !sala.containsPoint(quem.absolutePosition)) return false;
+  CreatureProgress.instance.registrarItemVisto(item.id);
+  return true;
+}
+
 /// Coletável do pedestal que entrega um [ItemEfeito]. Não pega duas vezes o
 /// mesmo item: um segundo `Revezamento` na lista dispararia o gancho duas
 /// vezes por troca, dobrando o bônus sem o balanceamento ter dito isso.
@@ -3237,10 +3251,18 @@ class ItemEfeitoPickup extends Collectible {
   @override
   String? nomeExibido(BuildContext context) => item.nome(context);
 
+  bool _visto = false;
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    if (!_visto) _visto = registrarSeVisto(this, item);
+  }
+
   @override
   bool onCollect(Player player) {
     if (player.itens.any((i) => i.id == item.id)) return false;
-    player.itens.add(item);
+    player.ganharItem(item);
     player.parent?.add(
       TextEffect(
         // Descrição, não nome: o nome já está escrito acima do sprite no chão

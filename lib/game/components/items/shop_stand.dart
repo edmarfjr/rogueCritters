@@ -4,6 +4,7 @@ import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/effects/text_effect.dart';
 import 'package:creatures_rogue/l10n/l10n_extensions.dart';
 import 'collectible.dart';
+import 'item_efeito.dart';
 import '../player/player.dart';
 
 /// Um balcão da loja: o sprite do que está à venda, com o preço escrito
@@ -34,6 +35,12 @@ class ShopStand extends Collectible {
   /// jogador tem `Reposicao`. Nulo = este balcão não se repõe.
   final ShopStand Function()? repor;
 
+  /// O item com gatilho à venda, quando este balcão vende um — só pra marcar
+  /// como visto no compêndio.
+  final ItemEfeito? itemEfeito;
+
+  bool _visto = false;
+
   ShopStand({
     required super.position,
     required this.preco,
@@ -42,6 +49,7 @@ class ShopStand extends Collectible {
     required this.descricao,
     this.msgFalha,
     this.repor,
+    this.itemEfeito,
     super.cor1,
     super.cor2,
   });
@@ -64,6 +72,13 @@ class ShopStand extends Collectible {
       ],
     ),
   );
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    final item = itemEfeito;
+    if (item != null && !_visto) _visto = registrarSeVisto(this, item);
+  }
 
   @override
   bool onCollect(Player player) {

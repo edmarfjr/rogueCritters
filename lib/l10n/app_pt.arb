@@ -578,5 +578,22 @@
   "effect_heranca": "HERANÇA: {item}",
   "@effect_heranca": {
     "placeholders": { "item": {} }
-  }
+  },
+  "menu_compendio": "COMPÊNDIO",
+  "compendio_criaturas": "CRIATURAS",
+  "compendio_itens": "ITENS",
+  "compendio_passivas": "PASSIVAS",
+  "compendio_abates": "ABATES: {n}",
+  "@compendio_abates": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "compendio_evolucao": "EVOLUÇÃO",
+  "compendio_base": "BASE",
+  "compendio_naoEncontrado": "AINDA NÃO ENCONTRADO",
+  "compendio_naoColetado": "VISTO, MAS AINDA NÃO COLETADO",
+  "compendio_liberaNoNivel": "LIBERA NO NÍVEL {n}",
+  "@compendio_liberaNoNivel": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "compendio_toqueNumItem": "TOQUE NUM ITEM PARA VER OS DETALHES"
 }
