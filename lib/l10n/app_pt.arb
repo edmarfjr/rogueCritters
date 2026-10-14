@@ -635,5 +635,45 @@
   "@afinidade_previa": {
     "placeholders": { "tipo": {}, "nivel": { "type": "int" } }
   },
-  "afinidade_previaDiversidade": "ATIVA: DIVERSIDADE"
+  "afinidade_previaDiversidade": "ATIVA: DIVERSIDADE",
+  "evento_mercadorTitulo": "MERCADOR DE TROCAS",
+  "evento_mercadorTexto": "TROCO QUALQUER ITEM SEU POR UM DOS MEUS. NÃO ESCOLHE QUAL, E NÃO TEM DEVOLUÇÃO!",
+  "evento_mercadorAcao": "TROCAR",
+  "evento_mercadorTrocar": "TROCAR: {item}",
+  "@evento_mercadorTrocar": {
+    "placeholders": { "item": {} }
+  },
+  "evento_mercadorSemItens": "VOCÊ NÃO TEM ITENS PARA TROCAR",
+  "evento_mercadorSemEstoque": "O MERCADOR ESTÁ SEM ESTOQUE",
+  "evento_mercadorTrocou": "NEGÓCIO FECHADO!",
+  "evento_ninhoTitulo": "NINHO",
+  "evento_ninhoTexto": "UM OVO QUENTINHO, ABANDONADO. ELE CHOCA DEPOIS DE {n} SALAS LIMPAS, MAS RACHA SE VOCÊ SE MACHUCAR.",
+  "@evento_ninhoTexto": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "evento_ninhoAcao": "LEVAR O OVO",
+  "evento_ninhoJaTem": "VOCÊ JÁ CARREGA UM OVO",
+  "evento_ninhoLevou": "VOCÊ GUARDA O OVO COM CUIDADO.",
+  "evento_dojoTitulo": "DOJO",
+  "evento_dojoTexto": "TREINO DURO, RESULTADO PERMANENTE. CADA AULA CUSTA MAIS QUE A ANTERIOR.",
+  "evento_dojoTreinar": "{aula} ({preco} MOEDAS)",
+  "@evento_dojoTreinar": {
+    "placeholders": { "aula": {}, "preco": { "type": "int" } }
+  },
+  "evento_dueloTitulo": "DUELO",
+  "evento_dueloTexto": "{nome} TE DESAFIA PARA UM DUELO. VENÇA E LEVE UM ITEM.",
+  "@evento_dueloTexto": {
+    "placeholders": { "nome": {} }
+  },
+  "evento_dueloAceitar": "ACEITAR O DUELO",
+  "evento_dueloComeca": "QUE VENÇA O MELHOR!",
+  "effect_ovoFalta": "OVO: {n}",
+  "@effect_ovoFalta": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "effect_ovoChocou": "O OVO CHOCOU! {premio}",
+  "@effect_ovoChocou": {
+    "placeholders": { "premio": {} }
+  },
+  "effect_ovoRachou": "O OVO RACHOU..."
 }

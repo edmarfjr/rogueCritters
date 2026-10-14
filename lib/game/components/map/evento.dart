@@ -11,6 +11,9 @@ import 'package:creatures_rogue/game/components/creatures/creature_data.dart';
 import 'package:creatures_rogue/game/components/effects/companion_revive_effect.dart';
 import 'package:creatures_rogue/game/components/items/consumable_item.dart';
 import 'package:creatures_rogue/game/components/items/item_efeito.dart';
+import 'package:creatures_rogue/game/components/items/power_up_item.dart';
+import 'package:creatures_rogue/game/components/enemies/enemy.dart';
+import 'package:creatures_rogue/game/components/map/room_component.dart';
 import 'package:creatures_rogue/game/components/player/player.dart';
 import 'package:creatures_rogue/game/components/utils/palette_swapper.dart';
 import 'package:creatures_rogue/game/components/utils/y_sort.dart';
@@ -20,7 +23,17 @@ import 'package:creatures_rogue/l10n/l10n_extensions.dart';
 
 /// Os eventos da sala de evento (`RoomType.evento`). Sorteados sem repetir
 /// na run (ver `CreaturesRogueGame.sortearEvento`).
-enum EventoTipo { altar, mendigo, fonte, criaturaFerida, termas }
+enum EventoTipo {
+  altar,
+  mendigo,
+  fonte,
+  criaturaFerida,
+  termas,
+  mercador,
+  ninho,
+  dojo,
+  duelo,
+}
 
 /// Um botão da janela do evento. [bloqueio] não nulo = botão apagado, com o
 /// motivo escrito embaixo.
@@ -45,10 +58,22 @@ class EventoNpc extends PositionComponent
   /// A criatura caída da `criaturaFerida`. Nula nos outros eventos.
   final CreatureData? criatura;
 
+  /// Sala onde o evento está — o Duelo tranca ela.
+  final RoomComponent? sala;
+
+  /// O desafiante do Duelo, já montado mas fora do mundo até o aceite.
+  final Enemy? rival;
+
+  /// As três aulas do Dojo, sorteadas uma vez por dojo.
+  late final List<PowerUpType> _aulas =
+      (List.of(PowerUpType.values)..shuffle(_rng)).take(3).toList();
+
   EventoNpc({
     required Vector2 position,
     required this.tipo,
     this.criatura,
+    this.sala,
+    this.rival,
   }) : super(size: Vector2(16, 16), anchor: Anchor.center, position: position);
 
   // ------------------------------------------------------------ números
@@ -59,7 +84,18 @@ class EventoNpc extends PositionComponent
   /// Mendigo: a doação nº [doacoesMendigo] dá item e encerra.
   static const int doacoesMendigo = 6;
 
+  /// Ninho: salas limpas até o ovo chocar.
+  static const int salasOvo = 3;
+
+  /// Dojo: preço da primeira aula, e quanto cada aula seguinte encarece.
+  static const int precoDojo = 6;
+  static const int encarecimentoDojo = 4;
+
   int _usos = 0;
+
+  /// Roda ao fechar a janela, quando o botão escolhido só faz efeito com o
+  /// jogo de volta (o Duelo começa a luta).
+  VoidCallback? _aoFechar;
 
   /// O evento acabou: a janela só mostra o resultado, e o objeto some ao
   /// fechar.
@@ -77,6 +113,14 @@ class EventoNpc extends PositionComponent
     if (c != null) {
       // Caída: as duas cores no tom escuro dela, pra ler "fraca".
       return (caminho: c.spritePath, cor1: c.corEscura, cor2: c.corEscura);
+    }
+    final desafiante = rival?.creature;
+    if (desafiante != null) {
+      return (
+        caminho: desafiante.spritePath,
+        cor1: desafiante.corClara,
+        cor2: desafiante.corEscura,
+      );
     }
     switch (tipo) {
       case EventoTipo.altar:
@@ -103,7 +147,26 @@ class EventoNpc extends PositionComponent
           cor1: Palette.azul,
           cor2: Palette.indigo,
         );
+      case EventoTipo.mercador:
+        return (
+          caminho: 'items/balanca.png',
+          cor1: Palette.amarelo,
+          cor2: Palette.marrom,
+        );
+      case EventoTipo.ninho:
+        return (
+          caminho: 'items/ninhoEvento.png',
+          cor1: Palette.bege,
+          cor2: Palette.marrom,
+        );
+      case EventoTipo.dojo:
+        return (
+          caminho: 'items/dojo.png',
+          cor1: Palette.vermelho,
+          cor2: Palette.marrom,
+        );
       case EventoTipo.criaturaFerida:
+      case EventoTipo.duelo:
         return (
           caminho: 'actors/dummy.png',
           cor1: Palette.cinza,
@@ -173,6 +236,9 @@ class EventoNpc extends PositionComponent
   /// Chamado ao fechar a janela. Esgotado, o objeto vai embora.
   void fechado() {
     _ignorarToque = _pausaAposFechar;
+    final aoFechar = _aoFechar;
+    _aoFechar = null;
+    aoFechar?.call();
     if (!esgotado) return;
     parent?.add(CompanionReviveEffect(position: position.clone()));
     removeFromParent();
@@ -193,6 +259,14 @@ class EventoNpc extends PositionComponent
         return l.evento_feridaTitulo;
       case EventoTipo.termas:
         return l.evento_termasTitulo;
+      case EventoTipo.mercador:
+        return l.evento_mercadorTitulo;
+      case EventoTipo.ninho:
+        return l.evento_ninhoTitulo;
+      case EventoTipo.dojo:
+        return l.evento_dojoTitulo;
+      case EventoTipo.duelo:
+        return l.evento_dueloTitulo;
     }
   }
 
@@ -209,6 +283,17 @@ class EventoNpc extends PositionComponent
         return l.evento_feridaTexto(creatureName(context, criatura!.id));
       case EventoTipo.termas:
         return l.evento_termasTexto;
+      case EventoTipo.mercador:
+        return l.evento_mercadorTexto;
+      case EventoTipo.ninho:
+        return l.evento_ninhoTexto(salasOvo);
+      case EventoTipo.dojo:
+        return l.evento_dojoTexto;
+      case EventoTipo.duelo:
+        final desafiante = rival?.creature;
+        return l.evento_dueloTexto(
+          desafiante == null ? '???' : creatureName(context, desafiante.id),
+        );
     }
   }
 
@@ -256,6 +341,53 @@ class EventoNpc extends PositionComponent
           OpcaoEvento(
             rotulo: l.evento_termasAcao,
             acao: () => _descansar(context),
+          ),
+        ];
+      case EventoTipo.mercador:
+        // Só item sorteável: passiva de aposentadoria é lembrança de uma
+        // criatura, não mercadoria.
+        final trocaveis = player.itens.where((i) => i.sorteavel).toList();
+        if (trocaveis.isEmpty) {
+          return [
+            OpcaoEvento(
+              rotulo: l.evento_mercadorAcao,
+              bloqueio: l.evento_mercadorSemItens,
+              acao: () {},
+            ),
+          ];
+        }
+        final semEstoque = game.poolItens.isEmpty;
+        return [
+          for (final item in trocaveis)
+            OpcaoEvento(
+              rotulo: l.evento_mercadorTrocar(item.nome(context)),
+              bloqueio: semEstoque ? l.evento_mercadorSemEstoque : null,
+              acao: () => _trocar(context, item),
+            ),
+        ];
+      case EventoTipo.ninho:
+        return [
+          OpcaoEvento(
+            rotulo: l.evento_ninhoAcao,
+            bloqueio: player.ovoSalas > 0 ? l.evento_ninhoJaTem : null,
+            acao: () => _pegarOvo(context),
+          ),
+        ];
+      case EventoTipo.dojo:
+        final preco = precoDojo + encarecimentoDojo * _usos;
+        return [
+          for (final aula in _aulas)
+            OpcaoEvento(
+              rotulo: l.evento_dojoTreinar(aula.descricao(context), preco),
+              bloqueio: player.coins < preco ? l.effect_semMoeda : null,
+              acao: () => _treinar(context, aula, preco),
+            ),
+        ];
+      case EventoTipo.duelo:
+        return [
+          OpcaoEvento(
+            rotulo: l.evento_dueloAceitar,
+            acao: () => _aceitarDuelo(context),
           ),
         ];
     }
@@ -342,6 +474,40 @@ class EventoNpc extends PositionComponent
     GameAudio.instance.play(Sfx.liberar);
     resultado = context.l10n.evento_termasCurou;
     esgotado = true;
+  }
+
+  /// Mercador: o item sai do inventário e um da pool cai no chão. O que saiu
+  /// não volta pra pool — oferta recusada não repete, e trocada também não.
+  void _trocar(BuildContext context, ItemEfeito item) {
+    game.player.perderItem(item);
+    _item(context);
+    resultado = context.l10n.evento_mercadorTrocou;
+    esgotado = true;
+  }
+
+  void _pegarOvo(BuildContext context) {
+    game.player.ovoSalas = salasOvo;
+    resultado = context.l10n.evento_ninhoLevou;
+    esgotado = true;
+  }
+
+  void _treinar(BuildContext context, PowerUpType aula, int preco) {
+    game.player.coins -= preco;
+    aula.aplicar(game.player);
+    _usos++;
+    GameAudio.instance.play(Sfx.liberar);
+    resultado = aula.descricao(context);
+  }
+
+  /// A luta começa ao FECHAR a janela, com o jogo de volta — começar com ele
+  /// pausado deixaria o rival parado na frente da janela.
+  void _aceitarDuelo(BuildContext context) {
+    resultado = context.l10n.evento_dueloComeca;
+    esgotado = true;
+    final desafiante = rival;
+    final local = sala;
+    if (desafiante == null || local == null) return;
+    _aoFechar = () => local.iniciarDuelo(desafiante);
   }
 
   // ------------------------------------------------------------ prêmios

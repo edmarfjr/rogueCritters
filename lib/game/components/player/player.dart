@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:creatures_rogue/l10n/l10n_extensions.dart';
+import 'package:creatures_rogue/game/components/items/coin_pickup.dart';
 import 'package:creatures_rogue/game/components/creatures/afinidade.dart';
 import 'package:creatures_rogue/game/components/creatures/creature_progress.dart';
 import 'dart:math' as math;
@@ -444,6 +446,59 @@ class Player extends PositionComponent
       default:
         break;
     }
+  }
+
+  /// Tira [item] do inventário, deixando ele limpar o que pôs no mundo.
+  void perderItem(ItemEfeito item) {
+    if (!itens.remove(item)) return;
+    item.aoPerder(this);
+  }
+
+  // ------------------------------------------------------------ ovo (Ninho)
+
+  /// Salas que faltam pro ovo do evento Ninho chocar. 0 = sem ovo. Não vai
+  /// pro save: continuar a run perde o ovo, como perde o resto do andar.
+  int ovoSalas = 0;
+
+  /// Uma sala limpa (ver `RoomComponent._unlockRoom`): o ovo anda um passo,
+  /// e no último choca num upgrade permanente sorteado.
+  void avancarOvo() {
+    if (ovoSalas <= 0) return;
+    ovoSalas--;
+    final contexto = game.buildContext!;
+    if (ovoSalas > 0) {
+      _avisoOvo(contexto.l10n.effect_ovoFalta(ovoSalas), Palette.branco);
+      return;
+    }
+    final upgrade =
+        PowerUpType.values[math.Random().nextInt(PowerUpType.values.length)];
+    upgrade.aplicar(this);
+    _avisoOvo(
+      contexto.l10n.effect_ovoChocou(upgrade.descricao(contexto)),
+      Palette.amarelo,
+    );
+  }
+
+  /// Perdeu vida com o ovo: ele racha e sobra pouco — umas moedas.
+  void _racharOvo() {
+    if (ovoSalas <= 0) return;
+    ovoSalas = 0;
+    for (var i = 0; i < 3; i++) {
+      parent?.add(
+        CoinPickup(position: position + Vector2(i * 8.0 - 8, 10)),
+      );
+    }
+    _avisoOvo(game.buildContext!.l10n.effect_ovoRachou, Palette.cinza);
+  }
+
+  void _avisoOvo(String texto, Color cor) {
+    parent?.add(
+      TextEffect(
+        text: texto,
+        position: position.clone() + Vector2(0, -size.y / 2 - 4),
+        color: cor,
+      ),
+    );
   }
 
   /// Toda entrada no inventário passa aqui: é o que alimenta o compêndio.
@@ -2367,6 +2422,7 @@ class Player extends PositionComponent
     for (final item in itens) {
       item.aoPerderVida(this, amountFinal);
     }
+    _racharOvo();
 
     // Última chance antes de a criatura sair de campo: o primeiro item que
     // aceitar segura o golpe e o resto nem é consultado (dois salvamentos no

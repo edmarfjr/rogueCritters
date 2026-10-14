@@ -260,14 +260,43 @@ class RoomComponent extends PositionComponent with HasGameRef {
     }
   }
 
+  bool _premioDuelo = false;
+
+  /// Evento Duelo aceito: a sala tranca com [rival] promovido a campeão, e
+  /// vencer dá um item (ver [_unlockRoom]).
+  void iniciarDuelo(Enemy rival) {
+    // Promovido ANTES do `add`, pelo mesmo motivo do [_spawnTurma].
+    rival.promoverACampeao(
+      CampeaoTipo.values[_random.nextInt(CampeaoTipo.values.length)],
+    );
+    // Do lado oposto ao jogador: ele acabou de encostar no desafiante, e
+    // nascer ali seria dano de contato antes da luta começar.
+    final centro = position + Vector2(width / 2, centerY);
+    final fuga = centro - player.position;
+    rival.position =
+        centro + (fuga.isZero() ? Vector2(0, -1) : fuga.normalized()) * 40;
+    data.isCleared = false;
+    _premioDuelo = true;
+    _lockRoom();
+    activeEnemies.add(rival);
+    parent?.add(rival);
+  }
+
   /// Sala de evento: o objeto do evento no centro (ver `EventoNpc`).
   void _spawnEvento() {
     final evento = (game as CreaturesRogueGame).sortearEvento();
+    final centro = position + Vector2(width / 2, centerY);
     parent?.add(
       EventoNpc(
-        position: position + Vector2(width / 2, centerY),
+        position: centro,
         tipo: evento.tipo,
         criatura: evento.criatura,
+        sala: this,
+        // O rival do Duelo nasce já aqui, sem entrar no mundo: é dele o
+        // sprite do desafiante, e é ele que luta se o jogador aceitar.
+        rival: evento.tipo == EventoTipo.duelo
+            ? EnemySpawner.getRandomEnemy(centro, player, dungeon)
+            : null,
       ),
     );
   }
@@ -815,6 +844,21 @@ class RoomComponent extends PositionComponent with HasGameRef {
   void _unlockRoom() {
     isLocked = false;
     data.isCleared = true;
+    player.avancarOvo();
+
+    // Duelo vencido (ver [iniciarDuelo]): o prêmio no centro da sala.
+    if (_premioDuelo) {
+      _premioDuelo = false;
+      final item = (game as CreaturesRogueGame).sortearItemEfeito();
+      if (item != null) {
+        parent?.add(
+          ItemEfeitoPickup(
+            position: position + Vector2(width / 2, centerY),
+            item: item,
+          ),
+        );
+      }
+    }
 
     // Afinidade de planta: chance de meio coração por sala limpa.
     if (_random.nextDouble() < player.chanceCuraAoLimpar && player.heal(1)) {

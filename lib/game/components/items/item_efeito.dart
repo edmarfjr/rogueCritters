@@ -178,6 +178,11 @@ abstract class ItemEfeito implements ItemDescritor {
   double ajustarGolpe(Player player, Enemy alvo, double dano) => dano;
 
   void aoAtualizar(Player player, double dt) {}
+
+  /// O item SAIU do inventário (o Mercador de Trocas levou). Quem deixou
+  /// algo no mundo — orbital, bola — limpa aqui; o resto é derivado e some
+  /// sozinho no quadro seguinte.
+  void aoPerder(Player player) {}
 }
 
 class ItemEfeitoRegistry {
@@ -2107,6 +2112,13 @@ class Ninhada extends ItemEfeito {
     }
   }
 
+  @override
+  void aoPerder(Player player) {
+    for (final f in _filhotes(player)) {
+      f.removeFromParent();
+    }
+  }
+
   Iterable<NinhoOrbital> _filhotes(Player player) =>
       player.parent?.children.whereType<NinhoOrbital>() ??
       const <NinhoOrbital>[];
@@ -2463,6 +2475,15 @@ class Coleira extends ItemEfeito {
       dono: EfeitoDono.jogador,
       aoIniciar: () => _garantirBola(player),
     );
+  }
+
+  @override
+  void aoPerder(Player player) {
+    for (final bola
+        in player.parent?.children.whereType<BolaCorrente>().toList() ??
+            const <BolaCorrente>[]) {
+      bola.removeFromParent();
+    }
   }
 
   void _garantirBola(Player player) {
