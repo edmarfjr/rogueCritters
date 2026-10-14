@@ -62,12 +62,10 @@ class DungeonGenerator {
   final bool comBoss;
 
   /// Chance de o andar ter uma sala de evento. Andar de boss nunca tem.
-  /// TODO: voltar pra 0.6 depois dos testes.
-  static const double chanceEvento = 1.0;
+  static const double chanceEvento = 0.6;
 
   /// Chance de o andar ter uma sala secreta.
-  /// TODO: voltar pra 0.6 depois dos testes.
-  static const double chanceSecreta = 1.0;
+  static const double chanceSecreta = 0.6;
 
   Map<String, RoomData> generate() {
     Map<String, RoomData> grid = {};
