@@ -15,6 +15,7 @@ import 'package:creatures_rogue/game/components/effects/dot.dart';
 import 'package:creatures_rogue/game/components/enemies/enemy.dart';
 import 'package:creatures_rogue/game/components/map/obstacle.dart';
 import 'package:creatures_rogue/game/components/map/wall_barrier.dart';
+import 'package:creatures_rogue/game/components/map/porta_secreta.dart';
 import 'package:creatures_rogue/game/components/player/player.dart';
 import 'package:creatures_rogue/game/components/projeteis/explosion_hitbox.dart';
 import 'package:creatures_rogue/game/components/utils/palette_swapper.dart';
@@ -318,6 +319,14 @@ class Projectile extends SpriteAnimationComponent with CollisionCallbacks, HasGa
   void onCollisionStart(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollisionStart(intersectionPoints, other);
     
+    // Parede rachada da sala secreta: golpe do jogador conta, tiro inimigo
+    // só se desfaz nela, como numa parede.
+    if (other is PortaSecreta && !other.isOpen && !atravessaObstaculos) {
+      if (!isEnemy) other.atingir();
+      onDestroy();
+      return;
+    }
+
     if ((other is WallBarrier || other is Rock || other is PedestalComponent) && !atravessaObstaculos) {
       onDestroy();
       return; 

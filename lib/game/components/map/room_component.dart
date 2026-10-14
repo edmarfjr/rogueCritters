@@ -23,6 +23,9 @@ import 'package:creatures_rogue/game/components/items/shop_stand.dart';
 import 'package:creatures_rogue/game/components/map/door.dart';
 import 'package:creatures_rogue/game/components/map/pedestal.dart';
 import 'package:creatures_rogue/game/components/map/evento.dart';
+import 'package:creatures_rogue/game/components/map/porta_secreta.dart';
+import 'package:creatures_rogue/game/audio/game_audio.dart';
+import 'package:creatures_rogue/game/audio/sfx.dart';
 import 'package:creatures_rogue/game/components/effects/aura_pulse_effect.dart';
 import 'package:creatures_rogue/game/components/creatures/wild_creature_npc.dart';
 import 'package:creatures_rogue/game/components/map/stairs.dart';
@@ -205,12 +208,55 @@ class RoomComponent extends PositionComponent with HasGameRef {
       _spawnDesafio();
     } else if (data.type == RoomType.evento) {
       _spawnEvento();
+    } else if (data.type == RoomType.secreta) {
+      _spawnSecreta();
     } else if (data.type == RoomType.start) {
       if (floor ==1) {
         _spawnTreasure();
          if (dungeon ==1)_spawnTutorial();
         //_spawnSalaDeTeste();
       }
+    }
+  }
+
+  /// Sala secreta: um de três prêmios — pilha de moedas e coração, um
+  /// pedestal de item, ou um evento de moeda (fonte ou mendigo) que não gasta
+  /// a lista de eventos da run.
+  void _spawnSecreta() {
+    final centro = position + Vector2(width / 2, centerY);
+    final sorte = _random.nextDouble();
+    if (sorte < 0.40) {
+      for (var i = 0; i < 6; i++) {
+        final angulo = i * math.pi / 3;
+        parent?.add(
+          CoinPickup(
+            position:
+                centro + Vector2(math.cos(angulo), math.sin(angulo)) * 14,
+          ),
+        );
+      }
+      parent?.add(HeartPickup(position: centro.clone()));
+    } else if (sorte < 0.75) {
+      final oferta = PedestalComponent.sortearOferta(
+        game as CreaturesRogueGame,
+        _random,
+        familia: 0,
+      );
+      parent?.add(
+        PedestalComponent(
+          position: centro - Vector2(8, 0),
+          familia: oferta.familia,
+          itemEfeito: oferta.item,
+          alternativas: oferta.alternativas,
+        ),
+      );
+    } else {
+      parent?.add(
+        EventoNpc(
+          position: centro,
+          tipo: _random.nextBool() ? EventoTipo.fonte : EventoTipo.mendigo,
+        ),
+      );
     }
   }
 
@@ -665,6 +711,72 @@ class RoomComponent extends PositionComponent with HasGameRef {
       );
       addDoorHalf(Vector2(width - 16, height / 2), math.pi, flipX: true);
     }
+
+    // Parede rachada da sala secreta: mesmo lugar das metades de porta, com
+    // a versão quebrada da parede da fase.
+    void addParedeSecreta(Vector2 pos) {
+      final p = PortaSecreta(
+        position: pos,
+        spritePath: dungeon == 2 || dungeon == 4
+            ? 'tileset/pedraQuebrada.png'
+            : 'tileset/arvoreSeca.png',
+        cor1: theme.corClara,
+        cor2: theme.corEscura,
+        cor3: theme.corBranca,
+        cor4: theme.corChao,
+        aoSerAtingida: _golpeNaParedeSecreta,
+      );
+      _portasSecretas.add(p);
+      add(p);
+    }
+
+    if (data.paredeSecretaTop) {
+      addParedeSecreta(Vector2((width / 2) - 16, topoHud));
+      addParedeSecreta(Vector2(width / 2, topoHud));
+    }
+    if (data.paredeSecretaBottom) {
+      addParedeSecreta(Vector2((width / 2) - 16, height - 16));
+      addParedeSecreta(Vector2(width / 2, height - 16));
+    }
+    if (data.paredeSecretaLeft) {
+      addParedeSecreta(Vector2(0, (height / 2) - 16));
+      addParedeSecreta(Vector2(0, height / 2));
+    }
+    if (data.paredeSecretaRight) {
+      addParedeSecreta(Vector2(width - 16, (height / 2) - 16));
+      addParedeSecreta(Vector2(width - 16, height / 2));
+    }
+  }
+
+  /// As duas metades da parede rachada (vazia se esta sala não hospeda a
+  /// sala secreta). Fora de `roomDoors` de propósito: trancar e destrancar a
+  /// sala não pode abrir a passagem.
+  final List<PortaSecreta> _portasSecretas = [];
+  int _golpesParedeSecreta = 0;
+
+  /// Golpes de ataque pra abrir a parede rachada. Explosão abre de uma vez.
+  static const int golpesParaAbrirSecreta = 3;
+
+  void _golpeNaParedeSecreta({bool forte = false}) {
+    if (_golpesParedeSecreta >= golpesParaAbrirSecreta) return;
+    _golpesParedeSecreta = forte
+        ? golpesParaAbrirSecreta
+        : _golpesParedeSecreta + 1;
+    GameAudio.instance.play(Sfx.hit);
+    for (final p in _portasSecretas) {
+      p.tremer();
+    }
+    if (_golpesParedeSecreta < golpesParaAbrirSecreta) return;
+
+    for (final p in _portasSecretas) {
+      p.open();
+    }
+    GameAudio.instance.play(Sfx.liberar);
+    // Agora sim é porta: o minimapa passa a desenhar a passagem e a sala.
+    data.doorTop |= data.paredeSecretaTop;
+    data.doorBottom |= data.paredeSecretaBottom;
+    data.doorLeft |= data.paredeSecretaLeft;
+    data.doorRight |= data.paredeSecretaRight;
   }
 
   /// [ladoEntrada] é a porta POR ONDE o jogador entrou nesta sala — usada pela
@@ -960,6 +1072,12 @@ class RoomComponent extends PositionComponent with HasGameRef {
   }
 
   void _generateWalls() {
+    // Vão na parede: porta de verdade, ou a parede rachada da sala secreta
+    // (que tapa o vão com `PortaSecreta`, ver [_generateDoors]).
+    final abreTopo = data.doorTop || data.paredeSecretaTop;
+    final abreBaixo = data.doorBottom || data.paredeSecretaBottom;
+    final abreEsquerda = data.doorLeft || data.paredeSecretaLeft;
+    final abreDireita = data.doorRight || data.paredeSecretaRight;
     final double tileSize = 16.0;
     final int tilesX = (width / tileSize).round();
     final int tilesY = (height / tileSize).round();
@@ -982,19 +1100,19 @@ class RoomComponent extends PositionComponent with HasGameRef {
         if (isTop || isBottom || isLeft || isRight) {
           bool isDoorTop =
               isTop &&
-              data.doorTop &&
+              abreTopo &&
               (x >= (tilesX / 2) - 1 && x <= (tilesX / 2));
           bool isDoorBottom =
               isBottom &&
-              data.doorBottom &&
+              abreBaixo &&
               (x >= (tilesX / 2) - 1 && x <= (tilesX / 2));
           bool isDoorLeft =
               isLeft &&
-              data.doorLeft &&
+              abreEsquerda &&
               (y >= (tilesY / 2) - 1 && y <= (tilesY / 2));
           bool isDoorRight =
               isRight &&
-              data.doorRight &&
+              abreDireita &&
               (y >= (tilesY / 2) - 1 && y <= (tilesY / 2));
 
           if (isDoorTop || isDoorBottom || isDoorLeft || isDoorRight) {
@@ -1037,7 +1155,7 @@ class RoomComponent extends PositionComponent with HasGameRef {
 
     // Parede "de cima" agora fica na linha 1 (`topoHud`) — linha 0 é a faixa
     // reservada pra HUD, sem barreira nenhuma ali.
-    if (data.doorTop) {
+    if (abreTopo) {
       add(
         WallBarrier(
           position: Vector2(0, topoHud),
@@ -1059,7 +1177,7 @@ class RoomComponent extends PositionComponent with HasGameRef {
       );
     }
 
-    if (data.doorBottom) {
+    if (abreBaixo) {
       add(
         WallBarrier(
           position: Vector2(0, height - 16),
@@ -1084,7 +1202,7 @@ class RoomComponent extends PositionComponent with HasGameRef {
     // Segmento de cima das barreiras laterais também para na linha 1 (não em
     // 0) — o de baixo do vão da porta não muda, já fica bem abaixo da faixa
     // reservada.
-    if (data.doorLeft) {
+    if (abreEsquerda) {
       add(
         WallBarrier(
           position: Vector2(0, topoHud),
@@ -1106,7 +1224,7 @@ class RoomComponent extends PositionComponent with HasGameRef {
       );
     }
 
-    if (data.doorRight) {
+    if (abreDireita) {
       add(
         WallBarrier(
           position: Vector2(width - 16, topoHud),

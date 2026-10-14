@@ -4,7 +4,7 @@ import 'dart:math';
 /// onde nasce a escada pro andar seguinte. A diferença é se há luta antes —
 /// em andar de boss é `boss`, nos outros é `stairs`. Separar os dois é o que
 /// deixa o minimapa avisar qual dos dois espera o jogador lá.
-enum RoomType { start, normal, boss, stairs, item, shop, desafio, evento }
+enum RoomType { start, normal, boss, stairs, item, shop, desafio, evento, secreta }
 
 /// Origem do grid lógico de salas: a sala inicial nasce em (origem, origem),
 /// e todo lugar que converte entre índice relativo do jogador
@@ -29,6 +29,15 @@ class RoomData {
   /// tranca ao entrar e se as portas nascem abertas, então reaproveitá-lo pra
   /// revelar faria o mapa "limpar" a dungeon inteira.
   bool isRevealed = false;
+
+  /// Lados desta sala com a passagem pra sala SECRETA, disfarçada de parede
+  /// rachada. Não são portas: o `door*` do mesmo lado só liga quando a
+  /// parede quebra (ver `RoomComponent._golpeNaParedeSecreta`) — é o que
+  /// esconde a sala secreta e a passagem no minimapa até lá.
+  bool paredeSecretaTop = false;
+  bool paredeSecretaBottom = false;
+  bool paredeSecretaLeft = false;
+  bool paredeSecretaRight = false;
 
   RoomData(this.x, this.y, {this.type = RoomType.normal});
   
@@ -55,6 +64,10 @@ class DungeonGenerator {
   /// Chance de o andar ter uma sala de evento. Andar de boss nunca tem.
   /// TODO: voltar pra 0.6 depois dos testes.
   static const double chanceEvento = 1.0;
+
+  /// Chance de o andar ter uma sala secreta.
+  /// TODO: voltar pra 0.6 depois dos testes.
+  static const double chanceSecreta = 1.0;
 
   Map<String, RoomData> generate() {
     Map<String, RoomData> grid = {};
@@ -107,8 +120,61 @@ class DungeonGenerator {
     }
     
     _assignSpecialRooms(grid);
+    if (_random.nextDouble() < chanceSecreta) _colocarSalaSecreta(grid);
 
     return grid;
+  }
+
+  /// Sala secreta numa célula VAZIA vizinha de salas existentes, de
+  /// preferência de duas ou mais (como no Isaac: o lugar "óbvio" pra quem
+  /// procura). Liga só a uma delas, a anfitriã, pela parede rachada.
+  /// Boss e escada ficam de fora como anfitriãs: a parede deles é a última
+  /// sala do andar, e a sala secreta seria achada sem querer na saída.
+  void _colocarSalaSecreta(Map<String, RoomData> grid) {
+    bool podeHospedar(RoomData r) =>
+        r.type != RoomType.boss && r.type != RoomType.stairs;
+
+    final candidatas = <String, List<RoomData>>{};
+    for (final sala in grid.values) {
+      if (!podeHospedar(sala)) continue;
+      for (final d in _direcoes) {
+        final chave = '${sala.x + d[0]},${sala.y + d[1]}';
+        if (grid.containsKey(chave)) continue;
+        candidatas.putIfAbsent(chave, () => []).add(sala);
+      }
+    }
+    if (candidatas.isEmpty) return;
+
+    final melhor = candidatas.values.map((v) => v.length).reduce(max);
+    final escolhidas = candidatas.entries
+        .where((e) => e.value.length == melhor)
+        .toList();
+    final escolhida = escolhidas[_random.nextInt(escolhidas.length)];
+    final anfitria = escolhida.value[_random.nextInt(escolhida.value.length)];
+
+    final partes = escolhida.key.split(',');
+    final secreta = RoomData(
+      int.parse(partes[0]),
+      int.parse(partes[1]),
+      type: RoomType.secreta,
+    )..isCleared = true;
+
+    final dx = secreta.x - anfitria.x;
+    final dy = secreta.y - anfitria.y;
+    if (dx == 1) {
+      anfitria.paredeSecretaRight = true;
+      secreta.doorLeft = true;
+    } else if (dx == -1) {
+      anfitria.paredeSecretaLeft = true;
+      secreta.doorRight = true;
+    } else if (dy == 1) {
+      anfitria.paredeSecretaBottom = true;
+      secreta.doorTop = true;
+    } else {
+      anfitria.paredeSecretaTop = true;
+      secreta.doorBottom = true;
+    }
+    grid[escolhida.key] = secreta;
   }
 
   /// Direções a partir de [room] cuja célula vizinha ainda está vazia.

@@ -8,6 +8,7 @@ import 'obstacle.dart';
 
 class Door extends Obstacle {
   bool _isOpen;
+  bool get isOpen => _isOpen;
   final double angleVal;
   final bool flipX;
   

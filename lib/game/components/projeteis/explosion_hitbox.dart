@@ -12,6 +12,7 @@ import 'package:creatures_rogue/game/components/creatures/creature_data.dart';
 import 'package:creatures_rogue/game/components/creatures/damageable_by_enemy.dart';
 import 'package:creatures_rogue/game/components/enemies/enemy.dart'; // Mude para base_enemy se refatorou
 import 'package:creatures_rogue/game/components/map/obstacle.dart';
+import 'package:creatures_rogue/game/components/map/porta_secreta.dart';
 import 'package:creatures_rogue/game/components/player/player.dart';
 
 class ExplosionHitbox extends PositionComponent with CollisionCallbacks {
@@ -145,6 +146,8 @@ class ExplosionHitbox extends PositionComponent with CollisionCallbacks {
 
     if (other is Rock) {
       other.blowUp();
+    } else if (other is PortaSecreta && !isEnemy) {
+      other.atingir(forte: true);
     } else if (other is Enemy && !isEnemy) {
       if(other.summonTimer > 0) return;
       // Mesma razão do Projectile: os upgrades de dano da run entram no ponto

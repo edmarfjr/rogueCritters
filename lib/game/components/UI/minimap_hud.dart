@@ -236,7 +236,7 @@ class MinimapHud extends PositionComponent with HasGameRef {
       canvas.drawRect(roomRect, roomPaint);
       canvas.drawRect(roomRect, roomOutlinePaint);
 //start, normal, boss, item, shop, desafio 
-      if (room.type == RoomType.item || room.type == RoomType.desafio || room.type == RoomType.shop || room.type == RoomType.evento) {
+      if (room.type == RoomType.item || room.type == RoomType.desafio || room.type == RoomType.shop || room.type == RoomType.evento || room.type == RoomType.secreta) {
         _desenharMarca(canvas,glifoExclama, drawX, drawY);
       }
       if (!room.isVisited && room.type == RoomType.normal) {
