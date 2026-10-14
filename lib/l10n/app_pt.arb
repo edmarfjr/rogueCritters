@@ -595,5 +595,40 @@
   "@compendio_liberaNoNivel": {
     "placeholders": { "n": { "type": "int" } }
   },
-  "compendio_toqueNumItem": "TOQUE NUM ITEM PARA VER OS DETALHES"
+  "compendio_toqueNumItem": "TOQUE NUM ITEM PARA VER OS DETALHES",
+  "evento_altarTitulo": "ALTAR DE SACRIFÍCIO",
+  "evento_altarTexto": "UM ALTAR ANTIGO PEDE SANGUE. QUANTO MAIS VOCÊ DÁ, MAIS ELE DEVOLVE.",
+  "evento_altarAcao": "SACRIFICAR MEIO CORAÇÃO",
+  "evento_mendigoTitulo": "MENDIGO",
+  "evento_mendigoTexto": "UMA CRIATURA MALTRAPILHA ESTENDE A PATA. TEM UMA MOEDA?",
+  "evento_mendigoAcao": "DOAR 1 MOEDA",
+  "evento_mendigoAgradece": "OBRIGADO!",
+  "evento_mendigoFoi": "ELE LARGA UM PRESENTE E VAI EMBORA.",
+  "evento_fonteTitulo": "FONTE DOS DESEJOS",
+  "evento_fonteTexto": "JOGUE UMA MOEDA E FAÇA UM PEDIDO.",
+  "evento_fonteAcao": "JOGAR 1 MOEDA",
+  "evento_fonteQuebrou": "A FONTE BRILHA E SE PARTE!",
+  "evento_feridaTitulo": "CRIATURA FERIDA",
+  "evento_feridaTexto": "{nome} ESTÁ CAÍDO E MUITO FRACO. VOCÊ PODE DIVIDIR SUA VIDA COM ELE.",
+  "@evento_feridaTexto": {
+    "placeholders": { "nome": {} }
+  },
+  "evento_feridaAcao": "CURAR (1 CORAÇÃO)",
+  "evento_feridaGrata": "EM GRATIDÃO, ELE TE DÁ: {passiva}",
+  "@evento_feridaGrata": {
+    "placeholders": { "passiva": {} }
+  },
+  "evento_termasTitulo": "TERMAS",
+  "evento_termasTexto": "ÁGUA QUENTE E CALMA. O GRUPO TODO PODE DESCANSAR AQUI, UMA VEZ.",
+  "evento_termasAcao": "DESCANSAR",
+  "evento_termasCurou": "O GRUPO TODO SE RECUPEROU!",
+  "evento_vidaBaixa": "VIDA BAIXA DEMAIS",
+  "evento_moedas": "+{n} MOEDAS",
+  "@evento_moedas": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "evento_cura": "+MEIO CORAÇÃO",
+  "evento_consumivel": "ALGO CAIU NO CHÃO!",
+  "evento_item": "UM ITEM APARECEU!",
+  "evento_nada": "NADA ACONTECEU..."
 }

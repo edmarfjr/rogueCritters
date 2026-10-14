@@ -4,7 +4,7 @@ import 'dart:math';
 /// onde nasce a escada pro andar seguinte. A diferença é se há luta antes —
 /// em andar de boss é `boss`, nos outros é `stairs`. Separar os dois é o que
 /// deixa o minimapa avisar qual dos dois espera o jogador lá.
-enum RoomType { start, normal, boss, stairs, item, shop, desafio }
+enum RoomType { start, normal, boss, stairs, item, shop, desafio, evento }
 
 /// Origem do grid lógico de salas: a sala inicial nasce em (origem, origem),
 /// e todo lugar que converte entre índice relativo do jogador
@@ -51,6 +51,10 @@ class DungeonGenerator {
   DungeonGenerator({this.maxRooms = 15, this.comBoss = true});
 
   final bool comBoss;
+
+  /// Chance de o andar ter uma sala de evento. Andar de boss nunca tem.
+  /// TODO: voltar pra 0.6 depois dos testes.
+  static const double chanceEvento = 1.0;
 
   Map<String, RoomData> generate() {
     Map<String, RoomData> grid = {};
@@ -167,6 +171,26 @@ class DungeonGenerator {
         // Nasce limpa como a loja: a sala só tranca quando o jogador PEGA o
         // item do pedestal, não ao entrar.
         desafio.isCleared = true;
+      }
+
+      // Evento: beco sem-saída que sobrou, senão qualquer sala comum — ele
+      // não tranca nem tem briga, então pode ficar no meio do caminho.
+      if (!comBoss && _random.nextDouble() < chanceEvento) {
+        RoomData? eventoRoom;
+        if (deadEnds.isNotEmpty) {
+          eventoRoom = deadEnds.removeLast();
+        } else {
+          final comuns = grid.values
+              .where((r) => r.type == RoomType.normal && r != shopRoom)
+              .toList();
+          if (comuns.isNotEmpty) {
+            eventoRoom = comuns[_random.nextInt(comuns.length)];
+          }
+        }
+        if (eventoRoom != null) {
+          eventoRoom.type = RoomType.evento;
+          eventoRoom.isCleared = true;
+        }
       }
 
       if (shopRoom != null) {

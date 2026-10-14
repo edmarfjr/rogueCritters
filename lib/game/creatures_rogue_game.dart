@@ -50,6 +50,7 @@ import 'package:creatures_rogue/game/components/creatures/wild_creature_npc.dart
 import 'package:creatures_rogue/game/components/items/consumable_item.dart';
 import 'package:creatures_rogue/game/components/map/dungeon_generator.dart';
 import 'package:creatures_rogue/game/components/map/room_component.dart';
+import 'package:creatures_rogue/game/components/map/evento.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/utils/palette_swapper.dart';
 import 'package:creatures_rogue/game/game_settings.dart';
@@ -421,6 +422,80 @@ class CreaturesRogueGame extends FlameGame
     return npcs;
   }
 
+  /// Evento cuja janela está aberta (ver `EventoOverlay`).
+  EventoNpc? eventoAberto;
+
+  /// Encostou num evento: pausa e abre a janela dele. Mesma trava da ficha
+  /// da criatura selvagem contra os dois hitboxes do jogador.
+  void abrirEvento(EventoNpc evento) {
+    if (overlays.isActive('Evento')) return;
+    eventoAberto = evento;
+    pauseEngine();
+    overlays.add('Evento');
+  }
+
+  void fecharEvento() {
+    overlays.remove('Evento');
+    final evento = eventoAberto;
+    eventoAberto = null;
+    resumeEngine();
+    evento?.fechado();
+  }
+
+  /// Eventos que ainda não saíram nesta run. Esvaziou, recomeça.
+  final List<EventoTipo> _eventosRestantes = [];
+
+  /// Sorteia o evento de uma sala de evento, sem repetir na run. A
+  /// `criaturaFerida` sorteia também a criatura; sem nenhuma disponível,
+  /// o evento vira `termas`.
+  ({EventoTipo tipo, CreatureData? criatura}) sortearEvento() {
+    if (_eventosRestantes.isEmpty) _eventosRestantes.addAll(EventoTipo.values);
+    final tipo = _eventosRestantes.removeAt(
+      _poolRandom.nextInt(_eventosRestantes.length),
+    );
+    if (tipo != EventoTipo.criaturaFerida) return (tipo: tipo, criatura: null);
+    final criatura = _sortearCriaturaFerida();
+    if (criatura == null) return (tipo: EventoTipo.termas, criatura: null);
+    return (tipo: tipo, criatura: criatura);
+  }
+
+  /// Criatura cuja passiva de aposentadoria ainda não saiu, e que não está
+  /// no grupo — a dela o jogador ainda pode ganhar aposentando.
+  CreatureData? _sortearCriaturaFerida() {
+    final candidatas = CreatureRegistry.all
+        .where(
+          (c) =>
+              poolAposentadoria.contains(c.id) &&
+              !grupo.any((m) => m?.criatura.id == c.id),
+        )
+        .toList();
+    if (candidatas.isEmpty) return null;
+    return candidatas[_poolRandom.nextInt(candidatas.length)];
+  }
+
+  /// Entrega a passiva de aposentadoria de [criatura] sem aposentar ninguém
+  /// (a `criaturaFerida`). Devolve a passiva, ou null se não houver.
+  ItemEfeito? entregarPassivaDe(CreatureData criatura) {
+    final passiva = PassivasAposentadoria.de(criatura.id);
+    if (passiva == null) return null;
+    if (!player.itens.any((i) => i.id == passiva.id)) {
+      player.ganharItem(passiva);
+    }
+    poolAposentadoria.remove(criatura.id);
+    return passiva;
+  }
+
+  /// Vida cheia pra todo o grupo, banco incluído — inclusive quem desmaiou.
+  /// Respeita o `Jejum` como toda cura: com ele, ninguém se recupera.
+  void curarGrupoInteiro() {
+    if (player.curaBloqueada) return;
+    player.heal(player.maxHealth.ceil());
+    for (final membro in grupo) {
+      if (membro == null || !membro.noBanco) continue;
+      membro.vida = membro.criatura.stats.maxHp;
+    }
+  }
+
   /// Criatura selvagem cuja ficha está aberta (ver `WildCreatureInfoOverlay`).
   WildCreatureNpc? npcEmAnalise;
 
@@ -786,6 +861,7 @@ class CreaturesRogueGame extends FlameGame
     derrotadoPorArmadilha = false;
     criaturasUsadas.clear();
     criaturasOferecidas.clear();
+    _eventosRestantes.clear();
     poolItens
       ..clear()
       //  filtra as passivas de aposentadoria: elas moram no mesmo

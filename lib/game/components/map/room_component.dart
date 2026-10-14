@@ -22,6 +22,7 @@ import 'package:creatures_rogue/game/components/items/power_up_item.dart';
 import 'package:creatures_rogue/game/components/items/shop_stand.dart';
 import 'package:creatures_rogue/game/components/map/door.dart';
 import 'package:creatures_rogue/game/components/map/pedestal.dart';
+import 'package:creatures_rogue/game/components/map/evento.dart';
 import 'package:creatures_rogue/game/components/creatures/wild_creature_npc.dart';
 import 'package:creatures_rogue/game/components/map/stairs.dart';
 import 'package:creatures_rogue/game/components/map/wall_barrier.dart';
@@ -201,6 +202,8 @@ class RoomComponent extends PositionComponent with HasGameRef {
       _spawnShop();
     } else if (data.type == RoomType.desafio) {
       _spawnDesafio();
+    } else if (data.type == RoomType.evento) {
+      _spawnEvento();
     } else if (data.type == RoomType.start) {
       if (floor ==1) {
         _spawnTreasure();
@@ -208,6 +211,18 @@ class RoomComponent extends PositionComponent with HasGameRef {
         //_spawnSalaDeTeste();
       }
     }
+  }
+
+  /// Sala de evento: o objeto do evento no centro (ver `EventoNpc`).
+  void _spawnEvento() {
+    final evento = (game as CreaturesRogueGame).sortearEvento();
+    parent?.add(
+      EventoNpc(
+        position: position + Vector2(width / 2, centerY),
+        tipo: evento.tipo,
+        criatura: evento.criatura,
+      ),
+    );
   }
 
   /// Pedestal da sala de DESAFIO. Guardado porque é ele que dispara a briga:
