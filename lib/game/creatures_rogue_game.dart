@@ -200,8 +200,14 @@ class CreaturesRogueGame extends FlameGame
       xpSalvo: destino.xp,
       evoluidaSalva: destino.evoluida,
     );
+    // A criatura que entra não pode apanhar no mesmo instante da troca: sem
+    // esta janela, trocar pra escapar de um golpe já no ar não salvava nada.
+    player.grantInvulnerability(invencivelAoTrocar);
     dungeonWorld.add(CompanionReviveEffect(position: player.position.clone()));
   }
+
+  /// Segundos de invencibilidade ao trocar de criatura manualmente.
+  static const double invencivelAoTrocar = 0.3;
 
   /// Toque em qualquer retrato do grupo — ver `Hud`/`CompanionPortraitIndicator`.
   /// Tocar o retrato já ativo não faz nada (sem postura pra ciclar). Tocar um
