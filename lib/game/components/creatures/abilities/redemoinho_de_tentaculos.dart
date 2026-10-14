@@ -17,7 +17,7 @@ class RedemoinhoDeTentaculos extends Ability {
   final double coef;
   final double alcance;
 
-  const RedemoinhoDeTentaculos({this.coef = 1.6, this.alcance = 32})
+  const RedemoinhoDeTentaculos({this.coef = 1.6, this.alcance = 48})
     : super(
         nome: 'Redemoinho de Tentáculos',
         descricao: 'O tentáculo gira em volta, acertando todos ao redor.',
