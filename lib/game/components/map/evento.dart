@@ -165,6 +165,9 @@ class EventoNpc extends PositionComponent
           cor1: Palette.vermelho,
           cor2: Palette.marrom,
         );
+      // Inalcançável na prática: os dois usam o sprite da própria criatura
+      // (`criatura` / `rival`, tratados no topo deste getter). O boneco é só
+      // o que o `switch` exige pra fechar todos os casos.
       case EventoTipo.criaturaFerida:
       case EventoTipo.duelo:
         return (
