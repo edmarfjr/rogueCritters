@@ -103,6 +103,7 @@ class OuricoEletricoBossEnemy extends Enemy{
 
   void _abrirComOnda() {
     parent?.add(ExplosionHitbox(
+      explosao: true,
       position: position.clone(),
       isEnemy: true,
       origem: creature,
@@ -135,6 +136,7 @@ class OuricoEletricoBossEnemy extends Enemy{
 
     _retaliacaoTimer = _cooldownRetaliacao;
     parent?.add(ExplosionHitbox(
+      explosao: true,
       position: position.clone(),
       isEnemy: true,
       origem: creature,

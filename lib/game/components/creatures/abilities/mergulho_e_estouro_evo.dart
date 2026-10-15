@@ -61,6 +61,7 @@ class MergulhoEEstouroEvo extends Ability {
       aoEmergir: () {
         user.parent?.add(
           ExplosionHitbox(
+            explosao: true,
             position: user.position.clone(),
             dmg: dano,
             knockback: empurrao,

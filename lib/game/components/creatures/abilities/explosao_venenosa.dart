@@ -24,6 +24,7 @@ class ExplosaoVenenosa extends Ability {
     final dano = user.creatureData.stats.ataque * coef;
     user.parent?.add(
       ExplosionHitbox(
+        explosao: true,
         position: user.position.clone(),
         dmg: dano,
         knockback: empurrao,

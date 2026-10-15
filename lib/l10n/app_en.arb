@@ -588,5 +588,12 @@
   "evento_dueloComeca": "MAY THE BEST WIN!",
   "effect_ovoFalta": "EGG: {n}",
   "effect_ovoChocou": "THE EGG HATCHED! {premio}",
-  "effect_ovoRachou": "THE EGG CRACKED..."
+  "effect_ovoRachou": "THE EGG CRACKED...",
+  "reviver_titulo": "CONTINUE?",
+  "reviver_texto": "WATCH AN AD TO REVIVE {nome} AT FULL HEALTH. YOU CAN ONLY DO THIS ONCE PER RUN.",
+  "reviver_assistir": "WATCH AND REVIVE",
+  "reviver_teste": "REVIVE (TEST)",
+  "reviver_indisponivel": "AD NOT AVAILABLE RIGHT NOW",
+  "reviver_naoTerminou": "THE AD DIDN'T FINISH",
+  "reviver_desistir": "GIVE UP"
 }

@@ -52,6 +52,9 @@ import 'package:creatures_rogue/game/components/map/dungeon_generator.dart';
 import 'package:creatures_rogue/game/components/map/room_component.dart';
 import 'package:creatures_rogue/game/components/map/evento.dart';
 import 'package:creatures_rogue/game/components/creatures/afinidade.dart';
+import 'package:creatures_rogue/game/anuncios.dart';
+import 'package:creatures_rogue/game/components/projeteis/projectile.dart';
+import 'package:creatures_rogue/game/components/effects/aura_pulse_effect.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/utils/palette_swapper.dart';
 import 'package:creatures_rogue/game/game_settings.dart';
@@ -882,6 +885,7 @@ class CreaturesRogueGame extends FlameGame
     bossesDaRun = 0;
     derrotadoPor = null;
     derrotadoPorArmadilha = false;
+    reviveuNestaRun = false;
     criaturasUsadas.clear();
     criaturasOferecidas.clear();
     _eventosRestantes.clear();
@@ -1091,6 +1095,7 @@ class CreaturesRogueGame extends FlameGame
     // fica vazio. Nada quebra, so a tela de vitoria mostraria menos.
     tempoDeRun = (dados['tempoDeRun'] as num?)?.toDouble() ?? 0.0;
     abatesDaRun = (dados['abates'] as num?)?.toInt() ?? 0;
+    reviveuNestaRun = dados['reviveu'] as bool? ?? false;
     bossesDaRun = (dados['bosses'] as num?)?.toInt() ?? 0;
     // Save anterior a este campo: sem histórico, qualquer criatura pode vir.
     criaturasOferecidas
@@ -1256,6 +1261,7 @@ class CreaturesRogueGame extends FlameGame
       'poolItens': poolItens.map((i) => i.id).toList(),
       'tempoDeRun': tempoDeRun,
       'abates': abatesDaRun,
+      'reviveu': reviveuNestaRun,
       'bosses': bossesDaRun,
       'criaturasUsadas': List<String>.from(criaturasUsadas),
       'criaturasOferecidas': criaturasOferecidas.toList(),
@@ -2490,6 +2496,7 @@ class CreaturesRogueGame extends FlameGame
     }
     overlays.remove('Hud');
     overlays.add('Victory');
+    GameMusic.instance.play(GameMusic.vitoria);
     pauseEngine();
     unawaited(RunSave.instance.apagar());
   }
@@ -2505,6 +2512,10 @@ class CreaturesRogueGame extends FlameGame
     _gameOverEmCurso = true;
 
     overlays.remove('Hud');
+    // A run fecha JÁ, mesmo com o reviver em oferta: save apagado, XP e
+    // tempo gravados, Herança marcada. Assim fechar o app na tela de reviver
+    // é morte de verdade, sem XP perdido. Reviver desfaz isto (ver
+    // [_reviver]).
     unawaited(RunSave.instance.apagar());
     _premiarProgressao(vitoria: false);
     if (player.itens.any((i) => i is Heranca)) {
@@ -2515,11 +2526,104 @@ class CreaturesRogueGame extends FlameGame
     // run sozinho — `startRun` toca `GameMusic.run`.
     GameMusic.instance.play(GameMusic.gameOver);
 
+    // O reviver só vale pra quem MORREU em combate (com cena de morte) — o
+    // grupo esvaziado por aposentadoria não tem quem trazer de volta.
+    final depois = comAnimacaoDeMorte && !reviveuNestaRun
+        ? _oferecerReviver
+        : _mostrarGameOver;
     if (!comAnimacaoDeMorte) {
-      _mostrarGameOver();
+      depois();
       return;
     }
-    player.iniciarMorte(aoTerminar: _mostrarGameOver);
+    player.iniciarMorte(aoTerminar: depois);
+  }
+
+  // ------------------------------------------------------------ reviver
+
+  /// Já usou o reviver nesta run (ver [reviverComAnuncio]). Vai pro save.
+  bool reviveuNestaRun = false;
+
+  /// Invencibilidade ao reviver, e raio do empurrão nos inimigos em volta.
+  static const double invencivelAoReviver = 2.0;
+  static const double raioEmpurraoReviver = 48.0;
+
+  void _oferecerReviver() {
+    overlays.add('Reviver');
+    pauseEngine();
+  }
+
+  /// DESISTIR na oferta: segue pro game over de sempre.
+  void recusarReviver() {
+    overlays.remove('Reviver');
+    _mostrarGameOver();
+  }
+
+  /// Mostra o anúncio e revive se ele foi visto até o fim. Devolve se
+  /// reviveu — a tela de oferta usa pra avisar quando não.
+  Future<bool> reviverComAnuncio() async {
+    if (reviveuNestaRun) return false;
+    final ganhou = await Anuncios.instance.mostrarRecompensado();
+    if (!ganhou) return false;
+    _reviver();
+    return true;
+  }
+
+  /// A última criatura volta com a vida cheia, onde caiu. Desfaz o fim de
+  /// run que [_handleGameOver] já tinha gravado e salva a run de novo.
+  void _reviver() {
+    overlays.remove('Reviver');
+    reviveuNestaRun = true;
+    _gameOverEmCurso = false;
+
+    unawaited(
+      CreatureProgress.instance.estornarFimDeRun(
+        xp: xpProgressaoGanho,
+        tempo: tempoDeRun,
+      ),
+    );
+    if (player.itens.any((i) => i is Heranca)) {
+      unawaited(CreatureProgress.instance.marcarHeranca(false));
+    }
+
+    // A ativa mora no `player`; o slot dela volta a existir com vida 0, como
+    // no começo da run (ver `startRun`).
+    grupo[companionAtivoIndex] = MembroGrupo(
+      criatura: player.creatureData,
+      noBanco: false,
+      vida: 0.0,
+      xp: player.xp,
+      evoluida: player.evoluida,
+    );
+    derrotadoPor = null;
+    derrotadoPorArmadilha = false;
+    player.reviver(invencibilidade: invencivelAoReviver);
+
+    // Respiro: some o que já vinha no ar, e quem estava colado é empurrado.
+    for (final p in dungeonWorld.children.whereType<Projectile>().toList()) {
+      if (p.isEnemy) p.removeFromParent();
+    }
+    for (final e in dungeonWorld.children.whereType<Enemy>()) {
+      if (e.position.distanceTo(player.position) < raioEmpurraoReviver) {
+        e.applyKnockback(player.position, 120);
+      }
+    }
+    dungeonWorld.add(
+      AuraPulseEffect(
+        position: player.position.clone(),
+        raio: raioEmpurraoReviver,
+        cor1: Palette.amarelo,
+        cor2: Palette.branco,
+      ),
+    );
+    GameAudio.instance.play(Sfx.liberar);
+
+    final temBoss = dungeonWorld.children.whereType<Enemy>().any(
+      (e) => e.ehBoss && e.health > 0,
+    );
+    GameMusic.instance.play(temBoss ? GameMusic.boss : GameMusic.run);
+    overlays.add('Hud');
+    resumeEngine();
+    unawaited(_salvarProgresso());
   }
 
   void _mostrarGameOver() {

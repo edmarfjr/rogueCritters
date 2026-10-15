@@ -197,6 +197,18 @@ class CreatureProgress {
     await _prefs.setInt(_xpProgressaoKey, xpProgressao + xp);
   }
 
+  /// Desfaz o XP e o tempo que um fim de run gravou, quando ele não
+  /// aconteceu: o jogador reviveu (ver `CreaturesRogueGame._reviver`).
+  Future<void> estornarFimDeRun({required int xp, required double tempo}) async {
+    final xpRestante = xpProgressao - xp;
+    await _prefs.setInt(_xpProgressaoKey, xpRestante < 0 ? 0 : xpRestante);
+    final tempoRestante = tempoTotal - tempo;
+    await _prefs.setDouble(
+      _tempoTotalKey,
+      tempoRestante < 0 ? 0.0 : tempoRestante,
+    );
+  }
+
   /// O item pode cair nesta run? GOD MODE libera todos, pelo mesmo motivo de
   /// [isUnlocked]: é cheat de teste, e mente só na leitura.
   bool itemLiberado(ItemEfeito item) =>

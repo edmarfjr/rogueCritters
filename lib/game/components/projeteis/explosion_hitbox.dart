@@ -51,6 +51,11 @@ class ExplosionHitbox extends PositionComponent with CollisionCallbacks {
   final DotKind? dotKind;
   final int dotTicks;
 
+  /// Explosão de verdade (estouro, detonação), e não um golpe de área
+  /// (mordida, soco, latido): toca o som de explosão do elemento em vez do
+  /// som de ataque.
+  final bool explosao;
+
   Paint paintV = Paint();
   Paint paintB = Paint();
 
@@ -72,6 +77,7 @@ class ExplosionHitbox extends PositionComponent with CollisionCallbacks {
     this.cegoDuracao = 0,
     this.dotKind,
     this.dotTicks = 1,
+    this.explosao = false,
     this.cor1 = Palette.vermelho,
     this.cor2 = Palette.branco,
     Vector2? size,
@@ -84,7 +90,13 @@ class ExplosionHitbox extends PositionComponent with CollisionCallbacks {
 
   @override
   Future<void> onLoad() async {
-    final sfx = tipo.attackSfx;
+    // Explosão de inimigo sem elemento no DANO (neutra pra vantagem) ainda
+    // soa como o elemento da criatura que a soltou: a Bomba de Fogo explode
+    // com som de fogo sem passar a dar dano dobrado em planta.
+    final tipoDoSom = tipo == CreatureType.neutro && origem != null
+        ? origem!.tipo
+        : tipo;
+    final sfx = explosao ? tipoDoSom.explosaoSfx : tipo.attackSfx;
     if (sfx != null) GameAudio.instance.play(sfx);
 
     // CORREÇÃO 1: isSolid = true garante que o interior do círculo também seja "sólido"

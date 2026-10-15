@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:creatures_rogue/game/audio/sfx.dart';
 import 'package:creatures_rogue/game/audio/ui_sfx.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/core/ui_theme.dart';
@@ -55,6 +56,7 @@ class WildCreatureInfoOverlay extends StatelessWidget {
                           context.l10n.settings_voltar,
                           () =>
                               game.fecharInfoCriaturaSelvagem(escolher: false),
+                          som: Sfx.voltar,
                         ),
                         const SizedBox(width: 12),
                         _botao(
@@ -88,7 +90,7 @@ class WildCreatureInfoOverlay extends StatelessWidget {
     );
   }
 
-  Widget _botao(String texto, VoidCallback onPressed) {
+  Widget _botao(String texto, VoidCallback onPressed, {Sfx som = Sfx.btn}) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: UiTheme.btnCor,
@@ -96,7 +98,7 @@ class WildCreatureInfoOverlay extends StatelessWidget {
         elevation: 0,
         shape: const BordaDuplaShape(),
       ),
-      onPressed: withBtnSfx(onPressed),
+      onPressed: withBtnSfx(onPressed, som: som),
       child: Text(
         texto.trim(),
         style: const TextStyle(

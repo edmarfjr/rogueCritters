@@ -1,3 +1,5 @@
+import 'package:creatures_rogue/game/audio/game_audio.dart';
+import 'package:creatures_rogue/game/audio/sfx.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
@@ -80,12 +82,18 @@ class ShopStand extends Collectible {
     if (item != null && !_visto) _visto = registrarSeVisto(this, item);
   }
 
+  /// Comprar toca o jingle de item, seja o que for — é a conquista da
+  /// compra, e o "sem dinheiro" sai lá embaixo.
+  @override
+  Sfx? get somDeColeta => Sfx.item;
+
   @override
   bool onCollect(Player player) {
     final l = game.buildContext!.l10n;
 
     final custo = _precoPara(player);
     if (player.coins < custo) {
+      GameAudio.instance.play(Sfx.semDinheiro);
       _avisar(l.effect_semMoeda);
       return false; // continua no balcão: dá pra voltar com dinheiro
     }

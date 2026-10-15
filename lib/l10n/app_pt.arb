@@ -675,5 +675,15 @@
   "@effect_ovoChocou": {
     "placeholders": { "premio": {} }
   },
-  "effect_ovoRachou": "O OVO RACHOU..."
+  "effect_ovoRachou": "O OVO RACHOU...",
+  "reviver_titulo": "CONTINUAR?",
+  "reviver_texto": "ASSISTA A UM ANÚNCIO PARA REVIVER {nome} COM A VIDA CHEIA. SÓ DÁ PARA FAZER ISSO UMA VEZ POR RUN.",
+  "@reviver_texto": {
+    "placeholders": { "nome": {} }
+  },
+  "reviver_assistir": "ASSISTIR E REVIVER",
+  "reviver_teste": "REVIVER (TESTE)",
+  "reviver_indisponivel": "ANÚNCIO INDISPONÍVEL NO MOMENTO",
+  "reviver_naoTerminou": "O ANÚNCIO NÃO FOI ATÉ O FIM",
+  "reviver_desistir": "DESISTIR"
 }

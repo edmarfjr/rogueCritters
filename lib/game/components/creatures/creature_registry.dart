@@ -915,8 +915,8 @@ class CreatureRegistry {
     nome: 'Zapeye',
     spritePath: 'actors/olhoEletrico.png',
     tipo: CreatureType.eletrico,
-    corClara: Palette.amarelo,
-    corEscura: Palette.plumEsc,
+    corClara: Palette.cinza,
+    corEscura: Palette.indigo,
     stats: BaseStats(maxHp: 4, speed: 70, defesa: 1, ataque: 3),
     ability1: RaioOcular(),
     ability2: Piscar(),
@@ -929,17 +929,13 @@ class CreatureRegistry {
 
   /// Evolução do Zapeye (Zaptron). O raio cresce com o foco e o teleporte
   /// deixa um clarão atordoante pra trás.
-  ///
-  /// `spritePath` aponta pro sprite da BASE de propósito: o evoluído ainda
-  /// não existe, e um caminho pra arquivo inexistente derruba o
-  /// `Flame.images.load` no instante da evolução. Trocar quando a arte chegar.
   static final CreatureData olhoEletricoEvo = CreatureData(
     id: 'olho_eletrico',
     nome: 'Zaptron',
-    spritePath: 'actors/olhoEletrico.png',
+    spritePath: 'actors/olhoEletricoEvo.png',
     tipo: CreatureType.eletrico,
-    corClara: Palette.amarelo,
-    corEscura: Palette.plumEsc,
+    corClara: Palette.cinza,
+    corEscura: Palette.indigo,
     stats: BaseStats(maxHp: 6, speed: 70, defesa: 1, ataque: 3),
     ability1: RaioConcentrado(),
     ability2: PiscarFulminante(),

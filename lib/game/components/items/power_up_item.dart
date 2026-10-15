@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/audio/sfx.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
@@ -137,6 +138,9 @@ class PowerUpItem extends Collectible {
 
   @override
   String? nomeExibido(BuildContext context) => type.descricao(context);
+
+  @override
+  Sfx? get somDeColeta => Sfx.item;
 
   @override
   bool onCollect(Player player) {

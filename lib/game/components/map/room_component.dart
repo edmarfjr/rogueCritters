@@ -836,6 +836,7 @@ class RoomComponent extends PositionComponent with HasGameRef {
 
   void _lockRoom() {
     isLocked = true;
+    GameAudio.instance.play(Sfx.salaTranca);
     for (var door in roomDoors) {
       door.close();
     }
@@ -844,6 +845,7 @@ class RoomComponent extends PositionComponent with HasGameRef {
   void _unlockRoom() {
     isLocked = false;
     data.isCleared = true;
+    GameAudio.instance.play(Sfx.salaLimpa);
     player.avancarOvo();
 
     // Duelo vencido (ver [iniciarDuelo]): o prêmio no centro da sala.

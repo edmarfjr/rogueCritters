@@ -196,6 +196,7 @@ class PinguimAguaBossEnemy extends Enemy with ShooterAttack {
   /// na saída e na chegada.
   void _estouroCongelante() {
     parent?.add(ExplosionHitbox(
+      explosao: true,
       position: position.clone(),
       isEnemy: true,
       origem: creature,

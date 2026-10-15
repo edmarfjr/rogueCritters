@@ -90,6 +90,7 @@ class DisparadaFlamejanteEvo extends Ability {
         onComplete: () {
           user.parent?.add(
             ExplosionHitbox(
+              explosao: true,
               position: user.position.clone(),
               dmg: ataque * coefExplosaoFinal,
               cor2: Palette.laranja,

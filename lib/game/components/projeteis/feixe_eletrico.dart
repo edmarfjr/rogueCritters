@@ -3,6 +3,8 @@ import 'dart:ui';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:creatures_rogue/game/audio/game_audio.dart';
+import 'package:creatures_rogue/game/audio/sfx.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/creatures/creature_data.dart';
 import 'package:creatures_rogue/game/components/creatures/creature_type.dart';
@@ -56,6 +58,10 @@ class FeixeEletrico extends PositionComponent {
   final double rampaMaxima;
   final double tempoRampa;
 
+  /// Largura do feixe em px (o brilho; o núcleo tem metade). Também alarga
+  /// a área de acerto, na mesma proporção.
+  final double espessura;
+
   double vida;
 
   FeixeEletrico({
@@ -74,6 +80,7 @@ class FeixeEletrico extends PositionComponent {
     this.atordoamento = 0.5,
     this.rampaMaxima = 1.0,
     this.tempoRampa = 1.5,
+    this.espessura = 4,
   });
 
   /// Recarga de atordoamento por alvo: sem ela um feixe contínuo deixaria
@@ -113,6 +120,19 @@ class FeixeEletrico extends PositionComponent {
     _fogoAmigo = isEnemy && d is Enemy && d.cegoTimer > 0;
     if (d is Player) _idDoDono = d.creatureData.id;
     _posicionar();
+    _tocarSom();
+  }
+
+  /// Feixe é contínuo: o som do elemento repete enquanto ele existe, no
+  /// ritmo em que a habilidade do jogador renova o feixe (0,4 s). Um toque só
+  /// no nascimento deixaria mudo o raio segurado — e o do chefe, que dura.
+  static const double _intervaloSom = 0.4;
+  double _somTimer = 0.0;
+
+  void _tocarSom() {
+    _somTimer = _intervaloSom;
+    final sfx = tipo.attackSfx;
+    if (sfx != null) GameAudio.instance.play(sfx);
   }
 
   bool get _donoSumiu {
@@ -132,6 +152,8 @@ class FeixeEletrico extends PositionComponent {
   void update(double dt) {
     super.update(dt);
     vida -= dt;
+    _somTimer -= dt;
+    if (_somTimer <= 0 && vida > 0) _tocarSom();
     if (vida <= 0 || _donoSumiu) {
       removeFromParent();
       return;
@@ -228,14 +250,17 @@ class FeixeEletrico extends PositionComponent {
     if (!isEnemy || _fogoAmigo) {
       for (final e in inimigos) {
         if (e == dono || e.summonTimer > 0 || e.health <= 0) continue;
-        lista.add((e, e.enemyHitbox.toAbsoluteRect().inflate(1)));
+        lista.add((e, e.enemyHitbox.toAbsoluteRect().inflate(espessura / 4)));
       }
     }
     final d = dono;
     if (isEnemy && d is Enemy) {
       final jogador = d.playerTarget;
       if (!jogador.submerso) {
-        lista.add((jogador, jogador.playerHitbox.toAbsoluteRect().inflate(1)));
+        lista.add((
+          jogador,
+          jogador.playerHitbox.toAbsoluteRect().inflate(espessura / 4),
+        ));
       }
     }
     return lista;
@@ -269,12 +294,12 @@ class FeixeEletrico extends PositionComponent {
     final fim = Offset(_fim.x, _fim.y);
     final brilho = Paint()
       ..color = cor2
-      ..strokeWidth = 4
+      ..strokeWidth = espessura
       ..strokeCap = StrokeCap.square
       ..isAntiAlias = false;
     final nucleo = Paint()
       ..color = cor1
-      ..strokeWidth = 2
+      ..strokeWidth = espessura / 2
       ..isAntiAlias = false;
     canvas.drawLine(Offset.zero, fim, brilho);
     canvas.drawLine(Offset.zero, fim, nucleo);
@@ -287,7 +312,7 @@ class FeixeEletrico extends PositionComponent {
     final perpendicular = Offset(-_direcaoAtual.y, _direcaoAtual.x);
     final faisca = Path()..moveTo(0, 0);
     for (double t = 6; t < comprimento; t += 6) {
-      final desvio = (_random.nextDouble() * 2 - 1) * 2.5;
+      final desvio = (_random.nextDouble() * 2 - 1) * espessura * 0.625;
       final base = Offset(_direcaoAtual.x * t, _direcaoAtual.y * t);
       final q = base + perpendicular * desvio;
       faisca.lineTo(q.dx, q.dy);

@@ -75,6 +75,7 @@ class DisparadaCongelanteEvo extends Ability {
   void _gelar(AbilityUser user, Vector2 ponto, double dano) {
     user.parent?.add(
       ExplosionHitbox(
+        explosao: true,
         position: ponto.clone(),
         dmg: dano,
         cor1: Palette.royal,

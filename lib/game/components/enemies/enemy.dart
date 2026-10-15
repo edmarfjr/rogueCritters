@@ -439,6 +439,9 @@ abstract class Enemy extends PositionComponent
 
     if(summonTimer>0){
       summonTimer -= dt;
+      // Fim do surgimento: é aí que o campeão "chega" — antes disso o som
+      // brigaria com o da sala trancando, que toca no mesmo instante.
+      if (summonTimer <= 0 && ehCampeao) GameAudio.instance.play(Sfx.campeao);
       return;
     }
 
@@ -574,6 +577,7 @@ abstract class Enemy extends PositionComponent
   /// de passiva atordoando no mesmo frame (ver PIVOT_TREINADOR.md) deixavam
   /// a duração final depender só da ordem de processamento da lista.
   void applyStun(double t) {
+    if (stunTimer <= 0 && t > 0) GameAudio.instance.play(Sfx.atordoado);
     stunTimer = t > stunTimer ? t : stunTimer;
   }
 
@@ -727,12 +731,11 @@ abstract class Enemy extends PositionComponent
     double amountFinal =
         amount * mult * bonusElemento * bonusFerido * (1 - damageReduction);
     if (amountFinal < 0) amountFinal = 0;
-    // if (amountFinal > 0)
-    GameAudio.instance.play(Sfx.hit);
 
     // `rolagem` era chamada de `critChance` e sombreava o stat de mesmo nome,
     // o que fazia a linha de baixo ler ao contrário do que faz.
     final rolagem = Random().nextDouble() * 100;
+    var critou = false;
     final chanceTotal =
         playerTarget.critChance +
         playerTarget.creatureData.stats.critBonus +
@@ -740,6 +743,7 @@ abstract class Enemy extends PositionComponent
     if (!doJogador) {
       // Fogo amigo: sem rolagem, e sem mexer na contagem do `SangueFrio`.
     } else if (chanceTotal >= rolagem) {
+      critou = true;
       amountFinal *= playerTarget.critMult;
       corTxt = Palette.vermelho;
       playerTarget.golpesSemCrit = 0;
@@ -750,6 +754,9 @@ abstract class Enemy extends PositionComponent
     } else {
       playerTarget.golpesSemCrit++;
     }
+    // Depois da rolagem: o crítico TROCA o som do golpe em vez de somar
+    // outro por cima — o limitador de toques cortaria o segundo.
+    GameAudio.instance.play(critou ? Sfx.critico : Sfx.hit);
 
     // Cheat (ver GameSettings.godMode): qualquer golpe que passe da redução
     // de dano mata na hora, não importa a vida restante.
@@ -795,7 +802,7 @@ abstract class Enemy extends PositionComponent
   void death() {
     if (_morto) return;
     _morto = true;
-    GameAudio.instance.play(Sfx.enemy_die);
+    GameAudio.instance.play(ehBoss ? Sfx.bossDerrotado : Sfx.enemy_die);
 
     // Boss caiu: a masmorra volta ao normal, e a trilha junto.
     if (ehBoss) GameMusic.instance.play(GameMusic.run);
@@ -820,6 +827,7 @@ abstract class Enemy extends PositionComponent
     if (campeaoTipo == CampeaoTipo.explosivo) {
       parent?.add(
         ExplosionHitbox(
+          explosao: true,
           position: position.clone(),
           isEnemy: true,
           origem: creature,

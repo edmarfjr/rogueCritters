@@ -61,6 +61,7 @@ class BombaFogoEnemy extends Enemy{
     if (!_explodiu) {
       _explodiu = true;
       parent?.add(ExplosionHitbox(
+        explosao: true,
         position: position.clone(),
         isEnemy: true,
         origem: creature,

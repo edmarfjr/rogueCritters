@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
+import 'package:creatures_rogue/game/audio/game_audio.dart';
+import 'package:creatures_rogue/game/audio/sfx.dart';
 import 'package:flutter/material.dart';
 import 'package:creatures_rogue/game/components/creatures/creature_data.dart';
 import 'package:creatures_rogue/game/components/creatures/creature_type.dart';
@@ -89,6 +91,9 @@ class GolpeDeTentaculo extends PositionComponent {
 
   @override
   Future<void> onLoad() async {
+    // Um toque por golpe, com o som do elemento, como todo ataque.
+    final sfx = tipo.attackSfx;
+    if (sfx != null) GameAudio.instance.play(sfx);
     final quem = dono;
     _fogoAmigo = isEnemy && quem is Enemy && quem.cegoTimer > 0;
     final mira = direcao.length == 0 ? Vector2(0, 1) : direcao.normalized();

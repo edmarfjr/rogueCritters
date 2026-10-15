@@ -109,6 +109,7 @@ class RodaFogoEnemy extends Enemy {
   void _bater() {
     parent?.add(
       ExplosionHitbox(
+        explosao: true,
         position: position.clone(),
         isEnemy: true,
         origem: creature,

@@ -97,6 +97,7 @@ class SapoAguaBossEnemy extends Enemy with JumpMovement {
       final direcao = direcaoBase.clone()..rotate(anguloOffset);
 
       parent?.add(ExplosionHitbox(
+        explosao: true,
         position: position.clone() + direcao * _offsetLeque,
         isEnemy: true, // sem isso a gosma machuca inimigos em vez do jogador
         origem: creature,

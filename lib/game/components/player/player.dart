@@ -501,6 +501,27 @@ class Player extends PositionComponent
     );
   }
 
+  /// Vida no último meio coração: bipe repetindo, como no Pokémon. Para
+  /// sozinho quando a vida sobe — e com o jogo pausado, porque o `update`
+  /// para junto.
+  double _bipeTimer = 0.0;
+
+  /// Recarga do clique de energia vazia (ver `Sfx.energiaVazia`).
+  double _avisoEnergiaCd = 0.0;
+  static const double _intervaloAvisoEnergia = 0.5;
+  static const double _intervaloBipe = 1.0;
+
+  void _bipeVidaBaixa(double dt) {
+    if (currentHealth <= 0 || currentHealth > 1 || _morrendo) {
+      _bipeTimer = 0.0;
+      return;
+    }
+    _bipeTimer -= dt;
+    if (_bipeTimer > 0) return;
+    _bipeTimer = _intervaloBipe;
+    GameAudio.instance.play(Sfx.vidaBaixa);
+  }
+
   /// Toda entrada no inventário passa aqui: é o que alimenta o compêndio.
   void ganharItem(ItemEfeito item) {
     itens.add(item);
@@ -683,7 +704,7 @@ class Player extends PositionComponent
       jogo.grupo[jogo.companionAtivoIndex]?.criatura = proxima;
     }
 
-    GameAudio.instance.play(Sfx.liberar);
+    GameAudio.instance.play(Sfx.evolucao);
     // Assíncrono, sem await — mesmo motivo de `trocarCriatura`: o cache de
     // sprite já foi aquecido em `_preloadCombatSprites`.
     _montarVisualEHitbox();
@@ -880,6 +901,21 @@ class Player extends PositionComponent
     // pairando no ar, soltos, enquanto o corpo gira embaixo deles. Tira de
     // vez — morta envenenada segue morta.
     conditionIcons.removeFromParent();
+  }
+
+  /// Volta da cena de morte com a vida cheia (o reviver por anúncio, ver
+  /// `CreaturesRogueGame._reviver`): desfaz o que [iniciarMorte] travou e
+  /// endireita o corpo caído.
+  void reviver({required double invencibilidade}) {
+    _morrendo = false;
+    _morteAoTerminar = null;
+    emCutscene = false;
+    naoMove = false;
+    visual.angle = 0;
+    visual.position = _visualBasePosition.clone();
+    if (!conditionIcons.isMounted) add(conditionIcons);
+    currentHealth = maxHealth;
+    grantInvulnerability(invencibilidade);
   }
 
   void _updateMorte(double dt) {
@@ -1723,6 +1759,8 @@ class Player extends PositionComponent
     _atualizarMergulho(dt);
 
     if (_invulnerabilityTimer > 0) _invulnerabilityTimer -= dt;
+    _bipeVidaBaixa(dt);
+    if (_avisoEnergiaCd > 0) _avisoEnergiaCd -= dt;
 
     // A ordem aqui é a regra, não estilo: os dois ramos escrevem o MESMO
     // canal (a opacidade do `visual`), e o pisca-pisca da invulnerabilidade
@@ -1756,7 +1794,9 @@ class Player extends PositionComponent
       _shieldRegenTimer += dt * regenEscudoMult;
       if (_shieldRegenTimer >= shieldRegenInterval) {
         _shieldRegenTimer = 0.0;
+        final antes = shield;
         shield = (shield + shieldRegenAmount).clamp(0.0, shieldMax);
+        if (shield > antes) GameAudio.instance.play(Sfx.escudoRecarga);
       }
     }
 
@@ -1862,7 +1902,15 @@ class Player extends PositionComponent
     // muito acima do cooldown de 0,4s, que só limita os três ou quatro
     // primeiros tiros do tanque cheio. Mexer só no cooldown não se sentiria.
     final custo = ability.custoEnergia * cdMultDerivado;
-    if (energia < custo) return;
+    if (energia < custo) {
+      // Com a mira segurada isto roda todo quadro: o recarga do aviso é o
+      // que impede uma metralhadora de cliques.
+      if (_avisoEnergiaCd <= 0) {
+        _avisoEnergiaCd = _intervaloAvisoEnergia;
+        GameAudio.instance.play(Sfx.energiaVazia);
+      }
+      return;
+    }
     if (!ability.canExecute(this)) return;
     ability.execute(this, lockedAb1Direction);
     energia -= custo;
@@ -2284,8 +2332,11 @@ class Player extends PositionComponent
         mult * amount * (1 - damageReduction) * (1 - reducaoDanoDerivada);
     if (amountFinal <= 0)
       return; // golpe totalmente mitigado: não gasta i-frame
-    GameAudio.instance.play(Sfx.hit);
-    // Junto do som, e não mais pra frente: este é o ponto em que o golpe está
+    // O SOM não sai aqui: ele depende do desfecho (esquiva, bloqueio, escudo
+    // quebrado ou dano), e dois sons seguidos esbarrariam no limitador de
+    // toques do `GameAudio`. Cada saída abaixo toca o seu.
+    //
+    // A vibração sai aqui: este é o ponto em que o golpe está
     // confirmado — já passou por godmode, i-frames e mitigação total. Vale
     // mesmo quando o escudo come o dano logo abaixo: o jogador levou o golpe,
     // e é disso que o feedback fala.
@@ -2327,6 +2378,7 @@ class Player extends PositionComponent
       for (final item in itens) {
         item.aoEvadir(this);
       }
+      GameAudio.instance.play(Sfx.esquiva);
       parent?.add(
         TextEffect(
           text: 'MISS',
@@ -2341,6 +2393,7 @@ class Player extends PositionComponent
     // antes do escudo — o golpe anulado não gasta carga nenhuma.
     for (final item in itens) {
       if (item.anulaGolpe(this)) {
+        GameAudio.instance.play(Sfx.defesa);
         parent?.add(
           TextEffect(
             text: '!',
@@ -2353,6 +2406,7 @@ class Player extends PositionComponent
     }
 
     if (consumirEscudo()) {
+      GameAudio.instance.play(Sfx.defesa);
       // Escudo de Espinhos: o golpe absorvido vira explosão. Fica aqui, e não
       // na habilidade, porque só este ponto sabe que um golpe FOI absorvido —
       // a habilidade termina de executar muito antes de alguém bater no
@@ -2362,6 +2416,7 @@ class Player extends PositionComponent
       if (retaliaEspinhos) {
         parent?.add(
           ExplosionHitbox(
+            explosao: true,
             position: position.clone(),
             dmg: retaliaDano,
             stunDuration: retaliaStunDuration,
@@ -2388,9 +2443,12 @@ class Player extends PositionComponent
       // `shieldRegenInterval`, então testar só o valor faria o gancho disparar
       // de novo a cada golpe enquanto a barra estivesse vazia.
       if (shield == 0) {
+        GameAudio.instance.play(Sfx.escudoQuebra);
         for (final item in itens) {
           item.aoQuebrarEscudo(this);
         }
+      } else {
+        GameAudio.instance.play(Sfx.defesa);
       }
       return; // o golpe foi absorvido pelo escudo, não chega no HP
       // Sem arredondar o resto pra cima: com 0.5 de escudo sobrando, um
@@ -2416,6 +2474,7 @@ class Player extends PositionComponent
     // Gravado aqui, no ponto em que a vida cai, e não na entrada: golpe
     // evadido, absorvido pelo escudo ou barrado pela invulnerabilidade sai
     // antes, e não pode virar o "derrotado por" de quem levou o golpe final.
+    GameAudio.instance.play(Sfx.dano);
     ultimaOrigemDeDano = origem;
     ultimoDanoPorArmadilha = porArmadilha;
     currentHealth -= amountFinal;
@@ -2492,6 +2551,9 @@ class Player extends PositionComponent
     if (currentHealth < maxHealth) {
       currentHealth += amount;
       if (currentHealth > maxHealth) currentHealth = maxHealth;
+      // Aqui, e não em cada fonte de cura: coração, loja, Presas, Termas,
+      // afinidade de planta — toda cura que sobe a vida soa igual.
+      GameAudio.instance.play(Sfx.cura);
       return true;
     }
     return false;

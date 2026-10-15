@@ -40,6 +40,7 @@ dependencies:
   flame: ^1.35.1
   flame_audio: ^2.10.6
   shared_preferences: ^2.3.3
+  google_mobile_ads: ^9.1.0
 
 dev_dependencies:
   flutter_test:

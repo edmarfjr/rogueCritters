@@ -41,6 +41,7 @@ class ExplosaoVenenosaEvo extends Ability {
 
     user.parent?.add(
       ExplosionHitbox(
+        explosao: true,
         position: user.position.clone(),
         dmg: dano,
         knockback: empurrao,

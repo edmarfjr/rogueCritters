@@ -40,6 +40,7 @@ class BolhaProtetora extends Ability {
   static void estourar(AbilityUser user, double knockback, double raio) {
     user.parent?.add(
       ExplosionHitbox(
+        explosao: true,
         position: user.position.clone(),
         dmg: 0,
         knockback: knockback,

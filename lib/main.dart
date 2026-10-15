@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:creatures_rogue/game/overlays/victory_overlay.dart';
 import 'package:creatures_rogue/game/overlays/compendio_overlay.dart';
 import 'package:creatures_rogue/game/overlays/evento_overlay.dart';
+import 'package:creatures_rogue/game/overlays/reviver_overlay.dart';
+import 'package:creatures_rogue/game/anuncios.dart';
 import 'package:creatures_rogue/game/overlays/retirement_overlay.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/core/ui_theme.dart';
@@ -52,6 +54,8 @@ void main() async {
   // atrasa a primeira tela. `GameAudio.play()` já é seguro de chamar antes
   // disso terminar — só fica mudo até o pool ficar pronto.
   unawaited(GameAudio.instance.preload());
+  // Consentimento de privacidade + SDK de anúncio, sem segurar a abertura.
+  Anuncios.instance.iniciar();
   //await Flame.device.setLandscape();
   await Flame.device.fullScreen();
 
@@ -90,6 +94,7 @@ void main() async {
         'MainMenu': (context, game) => MainMenuOverlay(game: game),
         'Compendio': (context, game) => CompendioOverlay(game: game),
         'Evento': (context, game) => EventoOverlay(game: game),
+        'Reviver': (context, game) => ReviverOverlay(game: game),
         'Settings': (context, game) => SettingsOverlay(game: game),
         'Intro': (context, game) => IntroOverlay(game: game),
         'CreatureSelect': (context, game) => CreatureSelectOverlay(game: game),

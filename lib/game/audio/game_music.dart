@@ -16,17 +16,20 @@ class GameMusic {
   static final GameMusic instance = GameMusic._();
 
   /// Menu principal. Tocada pelo `MainMenuOverlay`.
-  static const String menu = 'music/titleScreen.mp3';
+  static const String menu = 'music/menuTema.wav';
 
   /// Trilha da partida, do começo da run até o fim.
-  static const String run = 'music/hallOfFame.mp3';
+  static const String run = 'music/runTema.wav';
 
   /// Luta de boss. Volta pra [run] quando o boss cai (ver `Enemy.death`).
-  static const String boss = 'music/victoryRoad.mp3';
+  static const String boss = 'music/bossTema.wav';
 
   /// Fim da run por derrota. Entra junto com a cena de morte (ver
   /// `CreaturesRogueGame._handleGameOver`).
-  static const String gameOver = 'music/gameover.mp3';
+  static const String gameOver = 'music/gameoverTema.wav';
+
+  /// Tela de vitória (zerou o jogo).
+  static const String vitoria = 'music/vitoriaTema.wav';
 
   /// Todas as faixas, pro preload do `GameAudio` aquecer o cache de bytes.
   ///
@@ -34,7 +37,7 @@ class GameMusic {
   /// faixa de boss acontece exatamente quando o jogador abre a porta da sala
   /// — o pior instante possível pra engasgar. Aquecendo aqui, aquele
   /// `setSource` encontra os bytes já em memória.
-  static const List<String> todas = [menu, run, boss, gameOver];
+  static const List<String> todas = [menu, run, boss, gameOver, vitoria];
 
   String? _current;
   double volume = volumePadrao;

@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/audio/sfx.dart';
 import 'package:creatures_rogue/game/components/effects/sprite_effect.dart';
 import 'package:flutter/material.dart';
 import 'package:creatures_rogue/game/components/creatures/passives/roda_de_fogo.dart';
@@ -353,6 +354,7 @@ class CascaInstavel extends ItemEfeito {
   void aoTomarDano(Player player, double danoFinal, CreatureType tipoAtacante) {
     player.parent?.add(
       ExplosionHitbox(
+        explosao: true,
         position: player.position.clone(),
         dmg: danoFinal * player.creatureData.stats.defesa * coefDano,
         tipo: player.creatureData.tipo,
@@ -719,6 +721,7 @@ class RastroFlamejante extends ItemEfeito {
       player.dodgeIframeDuration,
       aoTerminar: () => player.parent?.add(
         ExplosionHitbox(
+          explosao: true,
           position: player.position.clone(),
           dmg: dano,
           cor2: Palette.laranja,
@@ -2388,6 +2391,7 @@ class PeDeCabra extends ItemEfeito {
   void aoQuebrarPedra(Player player, Rock pedra) {
     pedra.parent?.add(
       ExplosionHitbox(
+        explosao: true,
         position: pedra.position.clone(),
         dmg: player.creatureData.stats.ataque * coefDano,
         knockback: 60,
@@ -3281,6 +3285,9 @@ class ItemEfeitoPickup extends Collectible {
   }
 
   @override
+  Sfx? get somDeColeta => Sfx.item;
+
+  @override
   bool onCollect(Player player) {
     if (player.itens.any((i) => i.id == item.id)) return false;
     player.ganharItem(item);
@@ -3636,9 +3643,9 @@ class Pureza extends ItemEfeito {
   @override
   String get spritePath => 'items/pureza.png';
   @override
-  Color get cor1 => Palette.branco;
+  Color get cor1 => Palette.bege;
   @override
-  Color get cor2 => Palette.azul;
+  Color get cor2 => Palette.vermelho;
   @override
   String nome(BuildContext context) => context.l10n.item_pureza;
   @override
@@ -3701,9 +3708,9 @@ class Contrato extends ItemEfeito {
   @override
   String get spritePath => 'items/contrato.png';
   @override
-  Color get cor1 => Palette.vermelho;
+  Color get cor1 => Palette.bege;
   @override
-  Color get cor2 => Palette.preto;
+  Color get cor2 => Palette.vermelho;
   @override
   String nome(BuildContext context) => context.l10n.item_contrato;
   @override
@@ -3737,9 +3744,9 @@ class CoroaInstavel extends ItemEfeito {
   @override
   String get spritePath => 'items/coroa.png';
   @override
-  Color get cor1 => Palette.amarelo;
+  Color get cor1 => Palette.laranja;
   @override
-  Color get cor2 => Palette.laranja;
+  Color get cor2 => Palette.vermelho;
   @override
   String nome(BuildContext context) => context.l10n.item_coroaInstavel;
   @override
@@ -3788,9 +3795,9 @@ class OlhoNoOlho extends ItemEfeito {
   @override
   String get spritePath => 'items/olho.png';
   @override
-  Color get cor1 => Palette.branco;
+  Color get cor1 => Palette.vermelho;
   @override
-  Color get cor2 => Palette.vermelho;
+  Color get cor2 => Palette.cinza;
   @override
   String nome(BuildContext context) => context.l10n.item_olhoNoOlho;
   @override

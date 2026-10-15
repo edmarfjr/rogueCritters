@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/audio/sfx.dart';
 import 'package:flame/components.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/effects/text_effect.dart';
@@ -19,6 +20,9 @@ class CoinPickup extends Collectible {
           cor1: Palette.amarelo,
           cor2: Palette.laranja,
         );
+
+  @override
+  Sfx? get somDeColeta => Sfx.moeda;
 
   @override
   bool onCollect(Player player) {

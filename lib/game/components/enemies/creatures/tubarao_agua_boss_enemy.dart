@@ -74,6 +74,7 @@ class TubaraoAguaBossEnemy extends Enemy with JumpMovement {
 
   void _estourarAoPousar() {
     parent?.add(ExplosionHitbox(
+      explosao: true,
       position: position.clone(),
       isEnemy: true,
       origem: creature,

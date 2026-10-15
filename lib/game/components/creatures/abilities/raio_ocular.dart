@@ -18,10 +18,14 @@ class RaioOcular extends Ability {
   final double tempoParaAtordoar;
   final double rampaMaxima;
 
+  /// Largura do feixe em px (ver `FeixeEletrico.espessura`).
+  final double espessura;
+
   const RaioOcular({
     this.coef = 0.5,
     this.tempoParaAtordoar = 0.8,
     this.rampaMaxima = 1.0,
+    this.espessura = 4,
     super.nome = 'Raio Ocular',
     super.descricao =
         'Raio contínuo que para no primeiro alvo e o atordoa se mantido.',
@@ -54,6 +58,7 @@ class RaioOcular extends Ability {
         cor2: user.creatureData.corEscura,
         tempoParaAtordoar: tempoParaAtordoar,
         rampaMaxima: rampaMaxima,
+        espessura: espessura,
       ),
     );
   }
@@ -67,6 +72,8 @@ class RaioConcentrado extends RaioOcular {
     : super(
         tempoParaAtordoar: 0.6,
         rampaMaxima: 2.0,
+        // 50% mais grosso que o da base.
+        espessura: 6,
         nome: 'Raio Concentrado',
         descricao: 'Raio contínuo que fica mais forte quanto mais tempo no mesmo alvo.',
         custoEnergia: 2.5,

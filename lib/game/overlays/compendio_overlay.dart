@@ -87,7 +87,7 @@ class _CompendioOverlayState extends State<CompendioOverlay> {
       child: Row(
         children: [
           IconButton(
-            onPressed: withBtnSfx(() {
+            onPressed: withVoltarSfx(() {
               widget.game.overlays.remove('Compendio');
               widget.game.overlays.add('MainMenu');
             }),
@@ -136,7 +136,7 @@ class _CompendioOverlayState extends State<CompendioOverlay> {
               elevation: 0,
               shape: const BordaDuplaShape(),
             ),
-            onPressed: withBtnSfx(
+            onPressed: withCursorSfx(
               ativa ? null : () => setState(() => _aba = qual),
             ),
             child: FittedBox(
@@ -229,7 +229,7 @@ class _CompendioOverlayState extends State<CompendioOverlay> {
     final vista = _progresso.criaturaVista(c.id);
     final selecionada = c.id == _criatura.id;
     return InkWell(
-      onTap: withBtnSfx(
+      onTap: withCursorSfx(
         () => setState(() {
           _criatura = c;
           _evoluida = false;
@@ -379,7 +379,7 @@ class _CompendioOverlayState extends State<CompendioOverlay> {
         !coletado &&
         ProgressaoItens.bloqueado(item, _progresso.nivelProgressao);
     return InkWell(
-      onTap: withBtnSfx(() => setState(() => _item = item)),
+      onTap: withCursorSfx(() => setState(() => _item = item)),
       child: Container(
         width: 48,
         height: 48,

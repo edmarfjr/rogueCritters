@@ -33,6 +33,7 @@ class CascoFechadoEvo extends Ability {
 
     user.parent?.add(
       ExplosionHitbox(
+        explosao: true,
         position: user.position.clone(),
         dmg: user.creatureData.stats.ataque * coefEstouro,
         stunDuration: 1.0,

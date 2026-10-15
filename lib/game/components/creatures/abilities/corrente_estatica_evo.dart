@@ -28,6 +28,7 @@ class CorrenteEstaticaEvo extends Ability {
     if (!user.isMounted) return;
     user.parent?.add(
       ExplosionHitbox(
+        explosao: true,
         position: user.position.clone(),
         dmg: user.creatureData.stats.ataque * coefPulso,
         stunDuration: duracaoStun,

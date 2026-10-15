@@ -550,7 +550,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
           elevation: 0,
           shape: const BordaDuplaShape(),
         ),
-        onPressed: withBtnSfx(() {
+        onPressed: withVoltarSfx(() {
           widget.game.overlays.remove('Settings');
           widget.game.overlays.add(widget.game.settingsReturnOverlay);
         }),

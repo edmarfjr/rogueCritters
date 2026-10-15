@@ -87,7 +87,7 @@ class _CreatureSelectOverlayState extends State<CreatureSelectOverlay> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: withBtnSfx(() {
+                    onPressed: withVoltarSfx(() {
                       widget.game.overlays.remove('CreatureSelect');
                       widget.game.overlays.add('MainMenu');
                     }),
@@ -238,7 +238,7 @@ class _CreatureListTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: InkWell(
-        onTap: withBtnSfx(onTap),
+        onTap: withCursorSfx(onTap),
         child: Row(
           children: [
             // Seta à esquerda marcando a linha atual. Ocupa lugar mesmo quando

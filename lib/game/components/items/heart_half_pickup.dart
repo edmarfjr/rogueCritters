@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/audio/sfx.dart';
 import 'package:flame/components.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/effects/text_effect.dart';
@@ -12,6 +13,9 @@ class HeartHalfPickup extends Collectible {
       : super(spritePath: 'items/meiaFruta.png',cor1: Palette.laranja,cor2: Palette.verdeEsc);
 
   // Apenas implementamos a lógica do jogo
+  @override
+  Sfx? get somDeColeta => null;
+
   @override
   bool onCollect(Player player) {
     // O método heal() do Player já retorna 'true' se curou ou 'false' se a vida estava cheia

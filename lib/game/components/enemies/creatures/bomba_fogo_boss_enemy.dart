@@ -116,6 +116,7 @@ class BombaFogoBossEnemy extends Enemy{
 
   void _explodir({required double dano, required double raio}) {
     parent?.add(ExplosionHitbox(
+      explosao: true,
       position: position.clone(),
       isEnemy: true, // isEnemy true = machuca o Player e NÃO machuca inimigos
       origem: creature,

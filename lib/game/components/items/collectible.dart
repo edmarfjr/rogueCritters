@@ -124,7 +124,8 @@ abstract class Collectible extends PositionComponent
 
       if (wasCollected) {
         _coletado = true;
-        GameAudio.instance.play(Sfx.pick);
+        final som = somDeColeta;
+        if (som != null) GameAudio.instance.play(som);
         removeFromParent();
       }
     }
@@ -133,4 +134,8 @@ abstract class Collectible extends PositionComponent
   // NOVO: Método abstrato!
   // Retorna 'true' se o item foi consumido, ou 'false' se não (ex: vida já estava cheia)
   bool onCollect(Player player);
+
+  /// Som da coleta. `null` = quem coleta já toca o seu (o coração cura, e a
+  /// cura tem som próprio em `Player.heal`).
+  Sfx? get somDeColeta => Sfx.pick;
 }

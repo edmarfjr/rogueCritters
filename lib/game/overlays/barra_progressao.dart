@@ -1,3 +1,5 @@
+import 'package:creatures_rogue/game/audio/sfx.dart';
+import 'package:creatures_rogue/game/audio/game_audio.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:creatures_rogue/game/audio/ui_sfx.dart';
@@ -59,6 +61,7 @@ class _BarraProgressaoState extends State<BarraProgressao>
   void initState() {
     super.initState();
     _nivelMostrado = ProgressaoItens.nivelPara(widget.xpAntes);
+    _ultimoTique = widget.xpAntes ~/ _xpPorTique;
     _controle = AnimationController(
       vsync: this,
       // Run longa demora de verdade (650 XP a 30 ms dá ~20 s) — tocar a
@@ -84,8 +87,18 @@ class _BarraProgressaoState extends State<BarraProgressao>
     super.dispose();
   }
 
+  /// Tique de XP enquanto a barra enche: um a cada [_xpPorTique] XP, com o
+  /// som de pegar XP no jogo.
+  static const int _xpPorTique = 5;
+  int _ultimoTique = 0;
+
   void _aoAnimar() {
     setState(() {});
+    final tique = _xpExibido ~/ _xpPorTique;
+    if (tique != _ultimoTique) {
+      _ultimoTique = tique;
+      GameAudio.instance.play(Sfx.pick);
+    }
     _verificarNivel();
   }
 
@@ -126,6 +139,7 @@ class _BarraProgressaoState extends State<BarraProgressao>
   }
 
   Future<void> _mostrarDesbloqueio(ItemEfeito item) {
+    GameAudio.instance.play(Sfx.item);
     return showDialog<void>(
       context: context,
       barrierDismissible: false,

@@ -85,10 +85,34 @@ class GameAudio {
     Sfx.raio: 'sfx/raio.wav',
     Sfx.veneno: 'sfx/veneno.wav',
     Sfx.pick: 'sfx/pick.wav',
-    Sfx.use: 'sfx/pick.wav',
     Sfx.defesa: 'sfx/defesa.wav',
     Sfx.tiro: 'sfx/tiro.wav',
-    Sfx.estouro: 'sfx/shot.wav',
+    Sfx.dano: 'sfx/dano.wav',
+    Sfx.critico: 'sfx/critico.wav',
+    Sfx.escudoQuebra: 'sfx/escudoQuebra.wav',
+    Sfx.esquiva: 'sfx/esquiva.wav',
+    Sfx.vidaBaixa: 'sfx/vidaBaixa.wav',
+    Sfx.golpe: 'sfx/golpe.wav',
+    Sfx.moeda: 'sfx/moeda.wav',
+    Sfx.cura: 'sfx/cura.wav',
+    Sfx.item: 'sfx/item.wav',
+    Sfx.salaLimpa: 'sfx/salaLimpa.wav',
+    Sfx.salaTranca: 'sfx/salaTranca.wav',
+    Sfx.semDinheiro: 'sfx/semDinheiro.wav',
+    Sfx.bossEntrada: 'sfx/bossEntrada.wav',
+    Sfx.evolucao: 'sfx/evolucao.wav',
+    Sfx.atordoado: 'sfx/atordoado.wav',
+    Sfx.energiaVazia: 'sfx/energiaVazia.wav',
+    Sfx.cursor: 'sfx/cursor.wav',
+    Sfx.voltar: 'sfx/voltar.wav',
+    Sfx.explosao: 'sfx/explosao.wav',
+    Sfx.explosaoFogo: 'sfx/explosaoFogo.wav',
+    Sfx.explosaoAgua: 'sfx/explosaoAgua.wav',
+    Sfx.explosaoRaio: 'sfx/explosaoRaio.wav',
+    Sfx.explosaoVeneno: 'sfx/explosaoVeneno.wav',
+    Sfx.bossDerrotado: 'sfx/bossDerrotado.wav',
+    Sfx.campeao: 'sfx/campeao.wav',
+    Sfx.escudoRecarga: 'sfx/escudoRecarga.wav',
   };
 
   /// Quantas vozes cada som ganha — só os que realmente se sobrepõem em
@@ -110,15 +134,13 @@ class GameAudio {
   ///
   /// Antes de aumentar qualquer número aqui, some o mapa inteiro e lembre de
   /// reservar uma vaga pra música.
+  ///
+  /// Conta atual: 29 vozes próprias + 1 compartilhada ([_raros]) + a música.
+  /// Os elementais ficam com uma voz cada desde que as explosões ganharam
+  /// som próprio ([CreatureTypeSfx.explosaoSfx]): antes as duas coisas
+  /// disputavam a mesma voz.
   static const Map<Sfx, int> _voiceCounts = {
-    Sfx.hit: 3,
-    Sfx.fogo: 3,
-    Sfx.agua: 3,
-    Sfx.raio: 3,
-    Sfx.veneno: 3,
-    Sfx.tiro: 2,
-    Sfx.estouro: 2,
-    Sfx.enemy_die: 2,
+    Sfx.hit: 2,
   };
   static const int _defaultVoiceCount = 1;
 
@@ -225,7 +247,7 @@ class GameAudio {
       // O alerta de rajada na doc desta classe (item 5) é sobre COMBATE, com
       // o quadro correndo; aqui não há quadro pra atrapalhar.
       await Future.wait(
-        _paths.entries.map((entry) async {
+        _paths.entries.where((e) => !_raros.contains(e.key)).map((entry) async {
           final voiceCount = _voiceCounts[entry.key] ?? _defaultVoiceCount;
           final players = <AudioPlayer>[];
           for (var i = 0; i < voiceCount; i++) {
@@ -248,6 +270,15 @@ class GameAudio {
           _nextVoice[entry.key] = 0;
         }),
       );
+      // A voz dos [_raros]: mesma configuração, sem arquivo fixo.
+      final vozRara = AudioPlayer(playerId: 'raros')
+        ..audioCache = FlameAudio.audioCache
+        ..positionUpdater = null;
+      await vozRara.setPlayerMode(PlayerMode.mediaPlayer);
+      await vozRara.setAudioContext(audioContext);
+      await vozRara.setReleaseMode(ReleaseMode.stop);
+      await vozRara.setVolume(volume);
+      _vozRara = vozRara;
       _ready = true;
 
       // Fora do caminho crítico de propósito: sem `await`, o `onLoad` do jogo
@@ -265,15 +296,54 @@ class GameAudio {
   /// Toca [sfx] se as vozes já estiverem prontas, habilitado, e fora do
   /// throttle (por som e global). Nunca lança e nunca bloqueia o frame —
   /// chamável direto de qualquer `update`/`onCollision` sem `await`.
+  /// Sons que nunca tocam juntos — um por evento raro da run — e por isso
+  /// dividem UMA voz, que troca de arquivo a cada toque ([_tocarRaro]).
+  /// Cada voz própria custa um `MediaPlayer` do orçamento de [_voiceCounts];
+  /// estes todos juntos custam um.
+  ///
+  /// O preço é a troca de arquivo no toque (`setSource`), que voz própria
+  /// não paga. Por isso só entra aqui som que não é de combate.
+  static const Set<Sfx> _raros = {
+    Sfx.die,
+    Sfx.stairs,
+    Sfx.retorno,
+    // Troca de criatura, recrutar, reviver: ação do jogador, um por vez.
+    Sfx.liberar,
+    Sfx.salaLimpa,
+    Sfx.salaTranca,
+    Sfx.semDinheiro,
+    Sfx.bossEntrada,
+    Sfx.bossDerrotado,
+    Sfx.campeao,
+    Sfx.evolucao,
+    // Menu: só toca com o jogo parado, quando nenhum som de combate disputa.
+    Sfx.cursor,
+    Sfx.voltar,
+  };
+  AudioPlayer? _vozRara;
+
+  /// Sons que tocam o arquivo de outro e dividem as vozes dele, em vez de
+  /// gastar orçamento com uma cópia (ver [_voiceCounts]).
+  static const Map<Sfx, Sfx> _apelidos = {Sfx.use: Sfx.pick};
+
   void play(Sfx sfx, {double? volume}) {
     if (!_ready || !enabled) return;
-    final players = _voices[sfx];
-    if (players == null || players.isEmpty) return;
+    sfx = _apelidos[sfx] ?? sfx;
 
     final nowMs = DateTime.now().millisecondsSinceEpoch;
     if (nowMs - _lastPlayedAnyAtMs < _globalThrottleMs) return;
     final last = _lastPlayedAtMs[sfx] ?? 0;
     if (nowMs - last < _throttleMs) return;
+
+    if (_raros.contains(sfx)) {
+      _lastPlayedAtMs[sfx] = nowMs;
+      _lastPlayedAnyAtMs = nowMs;
+      _tocarRaro(sfx);
+      return;
+    }
+
+    final players = _voices[sfx];
+    if (players == null || players.isEmpty) return;
     _lastPlayedAtMs[sfx] = nowMs;
     _lastPlayedAnyAtMs = nowMs;
 
@@ -313,6 +383,26 @@ class GameAudio {
   ///
   /// O `catch`/log foi o que expôs o bug do `seek` no modo antigo (ver
   /// histórico do arquivo). Fica: só dispara em erro, nunca no caminho comum.
+  /// Toca [sfx] na voz compartilhada dos [_raros]: troca o arquivo e toca.
+  /// Voz ainda trocando (dois raros no mesmo instante) descarta o segundo,
+  /// pela mesma regra de [_busy].
+  Future<void> _tocarRaro(Sfx sfx) async {
+    final voz = _vozRara;
+    if (voz == null || _busy.contains(voz)) return;
+    _busy.add(voz);
+    try {
+      await voz.setSource(AssetSource(_paths[sfx]!));
+    } catch (e) {
+      debugPrint('GameAudio.play(${sfx.name}) setSource falhou: $e');
+      _busy.remove(voz);
+      return;
+    }
+    _busy.remove(voz);
+    voz.resume().catchError(
+      (e, st) => debugPrint('GameAudio.play(${sfx.name}) resume falhou: $e'),
+    );
+  }
+
   Future<void> _restart(Sfx sfx, AudioPlayer player) async {
     try {
       await player.seek(Duration.zero);

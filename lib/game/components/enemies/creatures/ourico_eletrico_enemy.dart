@@ -62,6 +62,7 @@ class OuricoEletricoEnemy extends Enemy {
 
     _retaliacaoTimer = _cooldownRetaliacao;
     parent?.add(ExplosionHitbox(
+      explosao: true,
       position: position.clone(),
       isEnemy: true, // machuca o jogador, não outros inimigos
       origem: creature,

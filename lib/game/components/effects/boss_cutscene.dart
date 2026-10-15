@@ -189,9 +189,7 @@ class BossCutscene extends SpriteComponent {
 
   void _invocar() {
     sprite = _invocando;
-    // Mesmo som de soltar criatura que o jogador ouve ao trocar de companheira
-    // — é literalmente a mesma ação, do outro lado da briga.
-    GameAudio.instance.play(Sfx.liberar);
+    GameAudio.instance.play(Sfx.bossEntrada);
     parent?.add(CompanionReviveEffect(position: posBoss));
     aoInvocar();
   }
