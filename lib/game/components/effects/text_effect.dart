@@ -21,6 +21,10 @@ class TextEffect extends PositionComponent {
   /// disso, então pra eles a quebra nunca acontece.
   final double larguraMax;
 
+  /// Duração de texto pra LER — descrição de item, upgrade, consumível ou
+  /// compra —, o dobro do padrão de número de dano.
+  static const double duracaoLeitura = 1.6;
+
   /// `TextPaint` e linhas são calculados uma vez e guardados: antes o
   /// `TextPaint` era reconstruído a cada quadro, e agora a quebra de linha
   /// precisa MEDIR o texto, o que seria pior ainda por frame.

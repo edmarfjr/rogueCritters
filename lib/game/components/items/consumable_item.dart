@@ -137,6 +137,7 @@ enum ConsumableType implements ItemDescritor {
         text: descricao(context),
         position: player.position.clone() + Vector2(0, -player.size.y / 2 - 4),
         color: Palette.verde,
+        duration: TextEffect.duracaoLeitura,
       ));
     }
 

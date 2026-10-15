@@ -125,6 +125,7 @@ class ShopStand extends Collectible {
         text: texto,
         position: position.clone() + Vector2(0, -12),
         color: Palette.amarelo,
+        duration: TextEffect.duracaoLeitura,
       ),
     );
   }
