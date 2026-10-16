@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/pactos.dart';
 import 'dart:async';
 import 'package:creatures_rogue/l10n/creature_i18n.dart';
 import 'package:creatures_rogue/game/components/creatures/ability_user.dart';
@@ -518,7 +519,7 @@ class CreaturesRogueGame extends FlameGame
     player.heal(player.maxHealth.ceil());
     for (final membro in grupo) {
       if (membro == null || !membro.noBanco) continue;
-      membro.vida = membro.criatura.stats.maxHp;
+      membro.vida = Pactos.vidaMaximaBase(membro.criatura.stats.maxHp);
     }
   }
 
@@ -560,7 +561,7 @@ class CreaturesRogueGame extends FlameGame
 
     grupo[slotVazio] = MembroGrupo(
       criatura: creature,
-      vida: creature.stats.maxHp,
+      vida: Pactos.vidaMaximaBase(creature.stats.maxHp),
     );
     _registrarCriaturaUsada(creature);
     return true;
@@ -873,6 +874,15 @@ class CreaturesRogueGame extends FlameGame
   /// sobrescreve stats/andar/dungeon/grupo por cima, e pula a tela de
   /// "BossReveal" (o boss já foi revelado antes de salvar).
   void startRun(CreatureData creature, {Map<String, dynamic>? save}) {
+    // Antes de tudo: o `Player` criado logo abaixo já lê a vida máxima pelos
+    // pactos. Run salva continua com os pactos DELA, não com a escolha de
+    // agora na seleção.
+    final progresso = CreatureProgress.instance;
+    Pactos.daRun = save != null
+        ? Pactos.deSave(save['pactos'])
+        : progresso.pactosLiberados
+        ? progresso.pactosEscolhidos
+        : const {};
     // Varredura explícita por tipo além do loop genérico abaixo: encontramos
     // um caso (Game Over → "Menu Principal") em que dois `startRun` corriam
     // em sequência com o motor pausado, e o `Player` da run anterior
@@ -1262,6 +1272,7 @@ class CreaturesRogueGame extends FlameGame
       'tempoDeRun': tempoDeRun,
       'abates': abatesDaRun,
       'reviveu': reviveuNestaRun,
+      'pactos': Pactos.paraSave(Pactos.daRun),
       'bosses': bossesDaRun,
       'criaturasUsadas': List<String>.from(criaturasUsadas),
       'criaturasOferecidas': criaturasOferecidas.toList(),
@@ -2485,7 +2496,10 @@ class CreaturesRogueGame extends FlameGame
   /// fora de propósito: contar o saldo puniria gastar na loja.
   int _xpDaRun({required bool vitoria}) {
     final andares = (currentLevel - 1) * numFloors + currentFloor;
-    return andares * 10 + bossesDaRun * 30 + abatesDaRun + (vitoria ? 100 : 0);
+    final base =
+        andares * 10 + bossesDaRun * 30 + abatesDaRun + (vitoria ? 100 : 0);
+    // Pactos: +5% por ponto de calor.
+    return (base * Pactos.multXp).round();
   }
 
   /// Grava o XP da run ANTES de qualquer animação: fechar o app no meio da
@@ -2514,6 +2528,12 @@ class CreaturesRogueGame extends FlameGame
     // teste, e a marca registra o que o jogador conquistou.
     if (!GameSettings.instance.godMode) {
       unawaited(CreatureProgress.instance.registrarVitoria(criaturasUsadas));
+      unawaited(
+        CreatureProgress.instance.registrarCalor(
+          criaturasUsadas,
+          Pactos.calorDaRun,
+        ),
+      );
     }
     overlays.remove('Hud');
     overlays.add('Victory');
@@ -2549,7 +2569,7 @@ class CreaturesRogueGame extends FlameGame
 
     // O reviver só vale pra quem MORREU em combate (com cena de morte) — o
     // grupo esvaziado por aposentadoria não tem quem trazer de volta.
-    final depois = comAnimacaoDeMorte && !reviveuNestaRun
+    final depois = comAnimacaoDeMorte && !reviveuNestaRun && !Pactos.semVolta
         ? _oferecerReviver
         : _mostrarGameOver;
     if (!comAnimacaoDeMorte) {

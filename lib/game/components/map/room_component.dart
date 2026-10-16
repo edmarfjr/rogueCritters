@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/pactos.dart';
 import 'package:creatures_rogue/game/game_settings.dart';
 import 'dart:math';
 import 'package:creatures_rogue/game/components/items/item_efeito.dart';
@@ -1096,7 +1097,8 @@ class RoomComponent extends PositionComponent with HasGameReference {
   /// Lido de `BossRegistry.all.length` em vez de um 5 fixo pra continuar
   /// valendo se outra dungeon entrar depois dela.
   double get chanceCampeaoPorSala =>
-      dungeon >= BossRegistry.all.length ? 0.40 : 0.10;
+      (dungeon >= BossRegistry.all.length ? 0.40 : 0.10) +
+      Pactos.bonusChanceCampeao;
 
   @override
   void update(double dt) {

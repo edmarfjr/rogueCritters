@@ -1660,7 +1660,7 @@ class Sentinela extends ItemEfeito {
   @override
   String get id => 'sentinela';
   @override
-  String get spritePath => 'items/garrafa.png';
+  String get spritePath => 'items/sentinela.png';
   @override
   Color get cor1 => Palette.indigo;
   @override

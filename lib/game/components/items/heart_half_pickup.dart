@@ -1,3 +1,5 @@
+import 'dart:math';
+import 'package:creatures_rogue/game/pactos.dart';
 import 'package:creatures_rogue/game/audio/sfx.dart';
 import 'package:flame/components.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
@@ -15,6 +17,16 @@ class HeartHalfPickup extends Collectible {
   // Apenas implementamos a lógica do jogo
   @override
   Sfx? get somDeColeta => null;
+
+  /// Pacto `Escassez`: metade dos corações nem chega a cair.
+  @override
+  Future onLoad() async {
+    if (Pactos.escassez && Random().nextBool()) {
+      removeFromParent();
+      return;
+    }
+    await super.onLoad();
+  }
 
   @override
   bool onCollect(Player player) {

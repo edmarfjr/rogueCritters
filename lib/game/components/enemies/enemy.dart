@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/pactos.dart';
 import 'package:creatures_rogue/game/components/projeteis/explosion_hitbox.dart';
 import 'package:creatures_rogue/game/components/enemies/aura_campeao.dart';
 import 'dart:math';
@@ -343,6 +344,14 @@ abstract class Enemy extends PositionComponent
 
   @override
   Future onLoad() async {
+    // Pactos `Couro Grosso` e `Chefe Implacável`: aqui, depois de uma
+    // eventual promoção a campeão, que também mexe na vida.
+    final multVida =
+        Pactos.multVidaInimigo * (ehBoss ? Pactos.multVidaChefe : 1.0);
+    if (multVida != 1.0) {
+      health *= multVida;
+      maxHealth = health;
+    }
     final ui.Image enemyImage = await PaletteSwapper.createSwappedImage(
       imagePath: spritePath,
       lightGrayReplacement: corClara,
@@ -435,7 +444,7 @@ abstract class Enemy extends PositionComponent
     // movimento, pulo, recarga de ataque e os efeitos filhos dele. Escalar o
     // `dt` aqui alcança todo comportamento de uma vez, inclusive os que não
     // usam `speed` (quem pula, quem tem cronômetro de ataque).
-    dt *= playerTarget.tempoInimigos;
+    dt *= playerTarget.tempoInimigos * Pactos.multTempoInimigo;
     super.update(dt);
 
     // Anchor.center: o "chão" (pés) fica meio size.y abaixo do centro.

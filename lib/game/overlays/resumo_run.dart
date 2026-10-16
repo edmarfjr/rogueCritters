@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/pactos.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
@@ -60,6 +61,8 @@ class ResumoRun extends StatelessWidget {
                 _linha(l.resumo_dungeon(game.currentLevel, game.currentFloor)),
                 _linha(l.victory_tempo(game.tempoDeRunFormatado)),
                 _linha(l.resumo_abates(game.abatesDaRun)),
+                if (Pactos.calorDaRun > 0)
+                  _linha(l.resumo_calor(Pactos.calorDaRun)),
               ],
             ),
           ),

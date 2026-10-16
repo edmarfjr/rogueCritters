@@ -4,7 +4,9 @@ import 'package:creatures_rogue/game/overlays/victory_overlay.dart';
 import 'package:creatures_rogue/game/overlays/compendio_overlay.dart';
 import 'package:creatures_rogue/game/overlays/evento_overlay.dart';
 import 'package:creatures_rogue/game/overlays/reviver_overlay.dart';
+import 'package:creatures_rogue/game/overlays/pactos_overlay.dart';
 import 'package:creatures_rogue/game/anuncios.dart';
+import 'package:creatures_rogue/game/paleta_tela.dart';
 import 'package:creatures_rogue/game/overlays/retirement_overlay.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/core/ui_theme.dart';
@@ -94,6 +96,7 @@ void main() async {
         'Compendio': (context, game) => CompendioOverlay(game: game),
         'Evento': (context, game) => EventoOverlay(game: game),
         'Reviver': (context, game) => ReviverOverlay(game: game),
+        'Pactos': (context, game) => PactosOverlay(game: game),
         'Settings': (context, game) => SettingsOverlay(game: game),
         'Intro': (context, game) => IntroOverlay(game: game),
         'CreatureSelect': (context, game) => CreatureSelectOverlay(game: game),
@@ -127,6 +130,9 @@ void main() async {
           fontFamily: 'pixelFont', // Define a fonte padrão para todo o app
           //primarySwatch: Colors.blue,
         ),
+        // Paleta da tela (ver `PaletaTela`) por cima de TUDO — o `builder`
+        // envolve o navegador, então diálogos entram no filtro também.
+        builder: (context, filho) => FiltroPaleta(child: filho!),
         home: gameHome,
       ),
     ),

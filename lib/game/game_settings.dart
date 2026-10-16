@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/paleta_tela.dart';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,6 +26,7 @@ class GameSettings {
   static const _godModeKey = 'creatures_rogue.god_mode';
   static const _joysticksFixosKey = 'creatures_rogue.joysticks_fixos';
   static const _controlesNaTelaKey = 'creatures_rogue.controles_na_tela';
+  static const _paletaKey = 'creatures_rogue.paleta';
 
   static const ControlScheme defaultControlScheme = ControlScheme.botoes;
 
@@ -42,6 +44,11 @@ class GameSettings {
   /// precisa reconstruir o `MaterialApp` na hora — é o único jeito de mudar
   /// `Locale` depois do app já ter subido (ver `main.dart`).
   final ValueNotifier<Locale?> localeNotifier = ValueNotifier(null);
+
+  /// Paleta da tela (ver `PaletaTela`). `ValueNotifier` pelo mesmo motivo do
+  /// idioma: o filtro no topo do app troca na hora, sem reabrir nada.
+  final ValueNotifier<PaletaTela> paletaNotifier =
+      ValueNotifier(PaletaTela.normal);
 
   bool get isLoaded => _loaded;
 
@@ -65,6 +72,11 @@ class GameSettings {
     _godMode = _prefs.getBool(_godModeKey) ?? false;
     _joysticksFixos = _prefs.getBool(_joysticksFixosKey) ?? false;
     _controlesNaTela = _prefs.getBool(_controlesNaTelaKey);
+    final paleta = _prefs.getString(_paletaKey);
+    paletaNotifier.value = PaletaTela.values.firstWhere(
+      (p) => p.name == paleta,
+      orElse: () => PaletaTela.normal,
+    );
     _loaded = true;
   }
 
@@ -78,6 +90,11 @@ class GameSettings {
   }
 
   Locale? get locale => localeNotifier.value;
+
+  Future<void> setPaleta(PaletaTela paleta) async {
+    paletaNotifier.value = paleta;
+    await _prefs.setString(_paletaKey, paleta.name);
+  }
 
   Future<void> setLocale(Locale? locale) async {
     localeNotifier.value = locale;

@@ -104,10 +104,15 @@ class _CreatureSelectOverlayState extends State<CreatureSelectOverlay> {
                       ),
                     ),
                   ),
-                  // Espaçador do mesmo tamanho do botão — sem ele o título
-                  // centraliza no espaço que sobra à direita DO botão, não
-                  // no meio de verdade da tela.
-                  const SizedBox(width: 48),
+                  // Mesma largura do botão de voltar — sem isso o título
+                  // centraliza no espaço que sobra, não no meio da tela. Com
+                  // os pactos liberados (primeira vitória), o lugar é deles.
+                  SizedBox(
+                    width: 48,
+                    child: CreatureProgress.instance.pactosLiberados
+                        ? _BotaoPactos(game: widget.game)
+                        : null,
+                  ),
                 ],
               ),
             ),
@@ -307,8 +312,8 @@ class _CreatureListTile extends StatelessWidget {
                     if (locked)
                       const Icon(Icons.lock, color: Palette.cinzaEsc, size: 16)
                     // Marca de conclusão: já venceu uma run com esta criatura.
-                    else if (CreatureProgress.instance.venceuCom(creature.id))
-                      const Icon(Icons.star, color: UiTheme.txtCor, size: 16),
+                    else
+                      MarcaVitoria(creatureId: creature.id),
                   ],
                 ),
               ),
@@ -657,6 +662,69 @@ class CreatureSprite extends StatelessWidget {
             filterQuality: FilterQuality.none,
           );
         },
+      ),
+    );
+  }
+}
+
+/// Marca de conclusão: estrela se já venceu uma run com a criatura, com o
+/// maior calor de pactos vencido ao lado (ver `Pactos`). Nada se nunca venceu.
+class MarcaVitoria extends StatelessWidget {
+  final String creatureId;
+  const MarcaVitoria({super.key, required this.creatureId});
+
+  @override
+  Widget build(BuildContext context) {
+    final progresso = CreatureProgress.instance;
+    if (!progresso.venceuCom(creatureId)) return const SizedBox.shrink();
+    final calor = progresso.calorVencido(creatureId);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.star, color: UiTheme.txtCor, size: 16),
+        if (calor > 0)
+          Text(
+            '$calor',
+            style: const TextStyle(
+              color: UiTheme.txtCor,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// Abre os pactos; mostra o calor escolhido no momento.
+class _BotaoPactos extends StatelessWidget {
+  final CreaturesRogueGame game;
+  const _BotaoPactos({required this.game});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<int>(
+      valueListenable: CreatureProgress.instance.calorEscolhido,
+      builder: (context, calor, _) => InkWell(
+        onTap: withBtnSfx(() => game.overlays.add('Pactos')),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.local_fire_department,
+              color: calor > 0 ? Palette.vermelho : UiTheme.txtCor,
+              size: 24,
+            ),
+            Text(
+              '$calor',
+              style: const TextStyle(
+                color: UiTheme.txtCor,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

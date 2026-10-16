@@ -263,8 +263,7 @@ class _CompendioOverlayState extends State<CompendioOverlay> {
                 ),
               ),
             ),
-            if (_progresso.venceuCom(c.id))
-              const Icon(Icons.star, color: UiTheme.txtCor, size: 16),
+            MarcaVitoria(creatureId: c.id),
           ],
         ),
       ),

@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/paleta_tela.dart';
 import 'package:creatures_rogue/game/audio/ui_sfx.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/core/ui_theme.dart';
@@ -103,6 +104,11 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
   // descendente dele, então reconstrói sozinha já com o idioma novo.
   void _escolherIdioma(Locale? locale) {
     GameSettings.instance.setLocale(locale);
+  }
+
+  Future<void> _escolherPaleta(PaletaTela paleta) async {
+    await GameSettings.instance.setPaleta(paleta);
+    if (mounted) setState(() {});
   }
 
   Future<void> _alternarSom(bool valor) async {
@@ -287,6 +293,7 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           ..._secaoIdioma(context),
+                          ..._secaoPaleta(context),
                           ..._secaoAudio(context),
                         ],
                       ),
@@ -294,7 +301,11 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                   ],
                 ),
               ),
-            if (retrato) ...[..._secaoIdioma(context), ..._secaoAudio(context)],
+            if (retrato) ...[
+              ..._secaoIdioma(context),
+              ..._secaoPaleta(context),
+              ..._secaoAudio(context),
+            ],
             const SizedBox(height: 4),
             ..._botoesFinais(context),
           ],
@@ -442,6 +453,47 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
                         ? Palette.branco
                         : UiTheme.txtCor,
                   ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    ];
+  }
+
+  /// Mesmo formato do idioma: um botão por opção, a ativa em destaque.
+  List<Widget> _secaoPaleta(BuildContext context) {
+    final atual = GameSettings.instance.paletaNotifier.value;
+    return [
+      const SizedBox(height: 4),
+      _rotuloSecao(context.l10n.settings_paleta),
+      const SizedBox(height: 4),
+      Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final paleta in PaletaTela.values)
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                backgroundColor: paleta == atual
+                    ? UiTheme.btnCorAtivo
+                    : UiTheme.btnCor,
+                side: const BorderSide(color: Palette.preto),
+                shape: const BordaDuplaShape(),
+              ),
+              onPressed: withBtnSfx(
+                paleta == atual ? null : () => _escolherPaleta(paleta),
+              ),
+              child: Text(
+                paleta.nome(context),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: paleta == atual ? Palette.branco : UiTheme.txtCor,
                 ),
               ),
             ),

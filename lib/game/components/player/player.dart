@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/pactos.dart';
 import 'dart:async';
 import 'package:creatures_rogue/l10n/l10n_extensions.dart';
 import 'package:creatures_rogue/game/components/items/coin_pickup.dart';
@@ -1393,8 +1394,8 @@ class Player extends PositionComponent
     required this.moveJoystick,
     required this.aimJoystick,
     required this.creatureData,
-  }) : maxHealth = creatureData.stats.maxHp,
-       currentHealth = creatureData.stats.maxHp,
+  }) : maxHealth = Pactos.vidaMaximaBase(creatureData.stats.maxHp),
+       currentHealth = Pactos.vidaMaximaBase(creatureData.stats.maxHp),
        shieldMax = creatureData.stats.shieldMax,
        shield = creatureData.stats.shieldMax,
        super(size: Vector2(16, 16), anchor: Anchor.center) {
@@ -1618,7 +1619,7 @@ class Player extends PositionComponent
     limparEfeitos(dono: EfeitoDono.criatura);
 
     creatureData = nova;
-    maxHealth = nova.stats.maxHp + bonusHpItens;
+    maxHealth = Pactos.vidaMaximaBase(nova.stats.maxHp) + bonusHpItens;
     currentHealth = vidaSalva.clamp(0.0, maxHealth);
     xp = xpSalvo;
     evoluida = evoluidaSalva;
@@ -1745,6 +1746,9 @@ class Player extends PositionComponent
     if (jogoAfinidade is CreaturesRogueGame) {
       _aplicarAfinidade(jogoAfinidade.afinidade);
     }
+    // Pactos `Escudo Frágil` e `Inflação`.
+    regenEscudoMult *= Pactos.multRegenEscudo;
+    fatorPrecoLoja *= Pactos.multPrecoLoja;
     if (temEfeito(#focoDoRaio)) velMultDerivado *= _fatorFocoDoRaio;
 
     if (_contatoCooldown.isNotEmpty) {
@@ -2341,7 +2345,11 @@ class Player extends PositionComponent
     }
 
     double amountFinal =
-        mult * amount * (1 - damageReduction) * (1 - reducaoDanoDerivada);
+        mult *
+        amount *
+        Pactos.multDanoInimigo *
+        (1 - damageReduction) *
+        (1 - reducaoDanoDerivada);
     if (amountFinal <= 0) {
       return; // golpe totalmente mitigado: não gasta i-frame
     }

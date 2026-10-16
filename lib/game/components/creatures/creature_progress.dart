@@ -1,3 +1,5 @@
+import 'package:creatures_rogue/game/pactos.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:creatures_rogue/game/components/items/item_efeito.dart';
@@ -25,6 +27,8 @@ class CreatureProgress {
   static const _itensColetadosKey = 'creatures_rogue.itens_coletados';
   static const _itensVistosKey = 'creatures_rogue.itens_vistos';
   static const _evolucoesKey = 'creatures_rogue.evolucoes_vistas';
+  static const _pactosKey = 'creatures_rogue.pactos';
+  static const _calorPrefix = 'creatures_rogue.calor.';
 
   /// Ninguém começa liberado: a primeira criatura vem da escolha no fim da
   /// intro (ver `IntroOverlay`), e é a única jogável na primeira run. A lista
@@ -52,6 +56,7 @@ class CreatureProgress {
         (_prefs.getStringList(_itensColetadosKey) ?? const []).toSet();
     _itensVistos = (_prefs.getStringList(_itensVistosKey) ?? const []).toSet();
     _evolucoes = (_prefs.getStringList(_evolucoesKey) ?? const []).toSet();
+    calorEscolhido.value = Pactos.calorDe(pactosEscolhidos);
     _loaded = true;
   }
 
@@ -104,6 +109,11 @@ class CreatureProgress {
     await _prefs.remove(_itensColetadosKey);
     await _prefs.remove(_itensVistosKey);
     await _prefs.remove(_evolucoesKey);
+    await _prefs.remove(_pactosKey);
+    for (final chave in _prefs.getKeys().toList()) {
+      if (chave.startsWith(_calorPrefix)) await _prefs.remove(chave);
+    }
+    calorEscolhido.value = 0;
     await _prefs.setBool(_introKey, false);
   }
 
@@ -184,6 +194,48 @@ class CreatureProgress {
   Future<void> _registrar(Set<String> registro, String chave, String id) async {
     if (GameSettings.instance.godMode || !registro.add(id)) return;
     await _prefs.setStringList(chave, registro.toList());
+  }
+
+  // ---------------------------------------------------------- pactos
+
+  /// Os pactos liberam depois da primeira vitória (ver `Pactos`). God mode
+  /// libera, como libera o resto, pra dar pra testar.
+  bool get pactosLiberados => GameSettings.instance.godMode || vitorias > 0;
+
+  /// Calor da escolha atual — a seleção de criatura escuta pra mostrar no
+  /// botão sem precisar ser reconstruída.
+  final ValueNotifier<int> calorEscolhido = ValueNotifier(0);
+
+  /// Pactos escolhidos pra próxima run, gravados como "id:nível".
+  Map<Pacto, int> get pactosEscolhidos {
+    final mapa = <String, int>{};
+    for (final item in _prefs.getStringList(_pactosKey) ?? const <String>[]) {
+      final partes = item.split(':');
+      if (partes.length == 2) mapa[partes[0]] = int.tryParse(partes[1]) ?? 0;
+    }
+    return Pactos.deSave(mapa);
+  }
+
+  Future<void> escolherPacto(Pacto pacto, int nivel) async {
+    final mapa = pactosEscolhidos..[pacto] = nivel;
+    calorEscolhido.value = Pactos.calorDe(mapa);
+    await _prefs.setStringList(_pactosKey, [
+      for (final e in mapa.entries)
+        if (e.value > 0) '${e.key.name}:${e.value}',
+    ]);
+  }
+
+  /// Maior calor vencido com esta criatura; -1 = nunca venceu com ela.
+  /// Vitória sem pacto nenhum grava 0.
+  int calorVencido(String creatureId) =>
+      _prefs.getInt('$_calorPrefix$creatureId') ?? -1;
+
+  Future<void> registrarCalor(Iterable<String> creatureIds, int calor) async {
+    for (final id in creatureIds) {
+      if (calor > calorVencido(id)) {
+        await _prefs.setInt('$_calorPrefix$id', calor);
+      }
+    }
   }
 
   /// A run passada morreu com a `Heranca`: a próxima começa com um item.
