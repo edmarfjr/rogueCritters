@@ -53,7 +53,7 @@ import 'package:creatures_rogue/game/components/projeteis/explosion_hitbox.dart'
 class Player extends PositionComponent
     with
         CollisionCallbacks,
-        HasGameRef,
+        HasGameReference,
         KeyboardHandler,
         EfeitosTemporarios,
         AbilityUser,
@@ -65,11 +65,13 @@ class Player extends PositionComponent
   /// enquanto ele estiver fora da zona morta. Substituiu botão/gesto pra
   /// habilidade 1 (twin-stick de eixos travados).
   final DynamicJoystickComponent aimJoystick;
+  @override
   CreatureData creatureData;
 
   // Componente visual único, animado por transformação (escala/flip), não por troca de frame.
   // Não são `final`: `trocarCriatura` remonta tudo a partir da criatura nova
   // (ver `_montarVisualEHitbox`).
+  @override
   late SpriteComponent visual;
   late Vector2 _visualBasePosition;
   late MovementAnimator _moveAnimator;
@@ -138,6 +140,7 @@ class Player extends PositionComponent
   double get shieldRegenFraction =>
       (_shieldRegenTimer / shieldRegenInterval).clamp(0.0, 1.0);
 
+  @override
   int bombsAmount = 3;
 
   double critChance = 5;
@@ -238,7 +241,7 @@ class Player extends PositionComponent
   /// ganhando redução de dano justamente enquanto voa pela sala. Mesma lição
   /// do `ProjetilMovimento.dirigidoPeloDono`.
   double tempoParado = 0.0;
-  Vector2 _posQuadroAnterior = Vector2.zero();
+  final Vector2 _posQuadroAnterior = Vector2.zero();
 
   /// Quanto ainda falta da janela de invulnerabilidade. Só leitura — quem
   /// escreve é [grantInvulnerability]. Exposto pra `PenaDeVoo`, que ESTENDE a
@@ -602,7 +605,9 @@ class Player extends PositionComponent
   /// travados — não é mais mira automática). `lockedAb2Direction` continua
   /// recalculada todo frame em [_atualizarMira] (inimigo mais próximo ou
   /// direção que o sprite está olhando, conforme `Ability.target`).
+  @override
   Vector2 lockedAb1Direction = Vector2(0, 1);
+  @override
   Vector2 lockedAb2Direction = Vector2(0, 1);
 
   // --- Cooldown das duas habilidades — a 1 tem TAMBÉM energia por cima
@@ -971,6 +976,7 @@ class Player extends PositionComponent
   /// [duration]s. Com [direction] zero (sem mira/movimento), pula no lugar
   /// — mesma curva de altura, sem deslocamento horizontal. [onLand] roda no
   /// frame em que os pés tocam o chão.
+  @override
   void startJump({
     required Vector2 direction,
     required double distance,
@@ -1078,6 +1084,7 @@ class Player extends PositionComponent
     return true;
   }
 
+  @override
   void aplicarLentidao(double duracao, {double fator = 0.5}) {
     if (_statusImunidadeTimer > 0) {
       if (_refletirStatus(
@@ -1092,6 +1099,7 @@ class Player extends PositionComponent
     if (fator < lentidaoFator) lentidaoFator = fator;
   }
 
+  @override
   void aplicarCegueira(double duracao) {
     if (_statusImunidadeTimer > 0) {
       if (_refletirStatus(_espelhoCegoCd, (e) => e.applyCego(duracao))) {
@@ -1104,10 +1112,12 @@ class Player extends PositionComponent
     cegoDuracaoInicial = duracao;
   }
 
+  @override
   void grantInvulnerability(double seconds) {
     if (seconds > _invulnerabilityTimer) _invulnerabilityTimer = seconds;
   }
 
+  @override
   void grantStatusImmunity(double seconds) {
     if (seconds > _statusImunidadeTimer) _statusImunidadeTimer = seconds;
   }
@@ -2098,6 +2108,7 @@ class Player extends PositionComponent
 
   /// Empurra o jogador para longe de [sourcePosition]. Usado por explosões
   /// de inimigos que repelem (Brado, bote da Cobra).
+  @override
   void applyKnockback(Vector2 sourcePosition, double force) {
     if (_statusImunidadeTimer > 0) {
       // Devolvido a partir do JOGADOR, não da origem: o empurrão volta como
@@ -2292,6 +2303,7 @@ class Player extends PositionComponent
   CreatureData? ultimaOrigemDeDano;
   bool ultimoDanoPorArmadilha = false;
 
+  @override
   void takeDamage(
     double amount,
     CreatureType tipoAtacante, {
@@ -2330,8 +2342,9 @@ class Player extends PositionComponent
 
     double amountFinal =
         mult * amount * (1 - damageReduction) * (1 - reducaoDanoDerivada);
-    if (amountFinal <= 0)
+    if (amountFinal <= 0) {
       return; // golpe totalmente mitigado: não gasta i-frame
+    }
     // O SOM não sai aqui: ele depende do desfecho (esquiva, bloqueio, escudo
     // quebrado ou dano), e dois sons seguidos esbarrariam no limitador de
     // toques do `GameAudio`. Cada saída abaixo toca o seu.
@@ -2521,14 +2534,18 @@ class Player extends PositionComponent
     // direito — ver `_direcaoAtaqueTravada`). Espaço = habilidade 2,
     // segurada (mesmo padrão do botão de toque).
     _keyboardAtaqueDir.setZero();
-    if (keysPressed.contains(LogicalKeyboardKey.arrowLeft))
+    if (keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
       _keyboardAtaqueDir.x -= 1;
-    if (keysPressed.contains(LogicalKeyboardKey.arrowRight))
+    }
+    if (keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
       _keyboardAtaqueDir.x += 1;
-    if (keysPressed.contains(LogicalKeyboardKey.arrowUp))
+    }
+    if (keysPressed.contains(LogicalKeyboardKey.arrowUp)) {
       _keyboardAtaqueDir.y -= 1;
-    if (keysPressed.contains(LogicalKeyboardKey.arrowDown))
+    }
+    if (keysPressed.contains(LogicalKeyboardKey.arrowDown)) {
       _keyboardAtaqueDir.y += 1;
+    }
     _keyboardHoldAbility2 = keysPressed.contains(LogicalKeyboardKey.space);
 
     // Teclas 1 e 2 = os dois slots do inventário, equivalente a clicar neles.

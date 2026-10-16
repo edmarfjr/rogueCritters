@@ -2,7 +2,6 @@ import 'package:flame/components.dart';
 import 'package:creatures_rogue/game/components/creatures/creature_registry.dart';
 import 'package:creatures_rogue/game/components/projeteis/projectile.dart';
 import '../enemy.dart';
-import '../enemy_mixins.dart';
 
 /// Slime de Planta como inimigo: nunca persegue ninguém. Vagueia pela arena e
 /// vai largando poças de veneno no chão, que ficam lá machucando quem pisar.

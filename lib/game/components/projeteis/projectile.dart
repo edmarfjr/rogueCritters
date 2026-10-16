@@ -45,7 +45,7 @@ enum ProjetilMovimento {
   dirigidoPeloDono
 }
 
-class Projectile extends SpriteAnimationComponent with CollisionCallbacks, HasGameRef {
+class Projectile extends SpriteAnimationComponent with CollisionCallbacks, HasGameReference {
   final Vector2 direction;
 
   /// Última posição conhecida do dono, pro modo

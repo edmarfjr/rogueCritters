@@ -1,4 +1,4 @@
-# Codemagic CI/CD — Creatures Rogue
+# Codemagic CI/CD — RogueCritters
 # Docs: https://docs.codemagic.io/yaml/yaml-getting-started/
 #
 # Dois workflows separados de propósito: uma mudança só de web não precisa
@@ -69,9 +69,8 @@ workflows:
       - name: Analisar código
         script: flutter analyze --no-fatal-infos --no-fatal-warnings
 
-      # Sem step de teste: o único arquivo em test/ é o widget_test.dart do
-      # template (contador), que falha porque testa uma tela que não existe.
-      # Quando houver teste de verdade, descomente:
+      # Sem step de teste: o projeto não tem testes automatizados (o teste é
+      # no aparelho). Quando houver, crie test/ e descomente:
       # - name: Rodar testes
       #   script: flutter test
 

@@ -2,7 +2,6 @@ import 'package:flame/components.dart';
 import 'package:creatures_rogue/game/components/creatures/creature_registry.dart';
 import 'package:creatures_rogue/game/components/projeteis/explosion_hitbox.dart';
 import '../enemy.dart';
-import '../enemy_mixins.dart';
 
 /// Urso de Planta Boss — "Patriarca da Floresta": mesmo avanço lento e sem
 /// parar da normal, com a mesma pancada de prepara-e-solta. É o mais lento do

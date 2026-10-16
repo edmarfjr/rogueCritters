@@ -75,7 +75,7 @@ class GameAudio {
     Sfx.dash: 'sfx/dash.wav',
     Sfx.retorno: 'sfx/retorno.wav',
     Sfx.liberar: 'sfx/liberar.wav',
-    Sfx.enemy_die: 'sfx/enemy_die.wav',
+    Sfx.enemyDie: 'sfx/enemy_die.wav',
     Sfx.die: 'sfx/die.wav',
     Sfx.stairs: 'sfx/enterStairs.wav',
     Sfx.btn: 'sfx/btn.wav',

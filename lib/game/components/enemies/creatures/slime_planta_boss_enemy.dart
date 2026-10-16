@@ -2,7 +2,6 @@ import 'package:flame/components.dart';
 import 'package:creatures_rogue/game/components/creatures/creature_registry.dart';
 import 'package:creatures_rogue/game/components/projeteis/projectile.dart';
 import '../enemy.dart';
-import '../enemy_mixins.dart';
 import 'slime_planta_enemy.dart';
 
 /// Slime de Planta Boss — "Mãe-Lodo": mesma ameaça passiva do normal (larga

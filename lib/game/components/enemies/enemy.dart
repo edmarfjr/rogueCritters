@@ -64,6 +64,7 @@ abstract class Enemy extends PositionComponent
         ChaseMovement {
   final Player playerTarget;
 
+  @override
   double speed;
   double health;
 
@@ -165,7 +166,9 @@ abstract class Enemy extends PositionComponent
   Color corBranco;
   late Vector2 hitboxSize;
   late Vector2 shadowOffset;
+  @override
   late RectangleHitbox enemyHitbox;
+  @override
   late RectangleHitbox physicsHitbox;
 
   /// A criatura que este inimigo é. Quando passada, fornece sprite, cores,
@@ -181,6 +184,7 @@ abstract class Enemy extends PositionComponent
 
   final String spritePath;
 
+  @override
   late final SpriteComponent visual;
   late final Vector2 _visualBasePosition;
   late final CircleComponent shadow ;
@@ -641,6 +645,7 @@ abstract class Enemy extends PositionComponent
   /// Toca a animação de movimento genérica (se a criatura tiver uma —
   /// ver [moveAnim]). Mixins de movimento contínuo (WanderMovement,
   /// ChaseMovement) chamam isso a cada frame com o estado atual.
+  @override
   void animateMovement(
     double dt, {
     required bool isMoving,
@@ -802,7 +807,7 @@ abstract class Enemy extends PositionComponent
   void death() {
     if (_morto) return;
     _morto = true;
-    GameAudio.instance.play(ehBoss ? Sfx.bossDerrotado : Sfx.enemy_die);
+    GameAudio.instance.play(ehBoss ? Sfx.bossDerrotado : Sfx.enemyDie);
 
     // Boss caiu: a masmorra volta ao normal, e a trilha junto.
     if (ehBoss) GameMusic.instance.play(GameMusic.run);

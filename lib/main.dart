@@ -12,7 +12,6 @@ import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:creatures_rogue/game/components/creatures/creature_progress.dart';
 import 'package:creatures_rogue/game/overlays/boss_reveal_overlay.dart';
 import 'package:creatures_rogue/game/overlays/console_overlay.dart';

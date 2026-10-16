@@ -1,12 +1,10 @@
 import 'package:creatures_rogue/game/components/UI/carga_sala_indicator.dart';
-import 'dart:math' as math;
 import 'package:creatures_rogue/game/components/items/item_efeito.dart';
 import 'dart:ui' as ui;
 import 'package:creatures_rogue/game/components/utils/palette_swapper.dart';
 import 'package:creatures_rogue/game/creatures_rogue_game.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
-import 'package:creatures_rogue/game/components/UI/ability_cooldown_indicator.dart';
 import 'package:creatures_rogue/game/components/UI/companion_portrait_indicator.dart';
 import 'package:creatures_rogue/game/components/UI/cooldown_ring_indicator.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
@@ -14,7 +12,7 @@ import 'package:creatures_rogue/game/components/core/ui_theme.dart';
 import 'package:creatures_rogue/game/components/creatures/creature_data.dart';
 import '../player/player.dart';
 
-class Hud extends PositionComponent with HasGameRef {
+class Hud extends PositionComponent {
   final Player player;
   final CreaturesRogueGame game;
 

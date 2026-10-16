@@ -29,7 +29,6 @@ class JatoAquaticoEvo extends Ability {
   @override
   void execute(AbilityUser user, Vector2 dir) {
     final dano = user.creatureData.stats.ataque * coef;
-    final direction = dir.clone();
 
     for (int i = 0; i < tiros; i++) {
       Future.delayed(Duration(milliseconds: (i * intervalo * 1000).round()), () {

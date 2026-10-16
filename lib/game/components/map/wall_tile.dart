@@ -5,7 +5,7 @@ import 'package:flame/components.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/utils/palette_swapper.dart';
 
-class WallTile extends SpriteComponent with HasGameRef {
+class WallTile extends SpriteComponent with HasGameReference {
   final String spritePath;
   final double angleVal;
   final Color cor1;

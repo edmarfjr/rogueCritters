@@ -7,7 +7,7 @@ import 'package:creatures_rogue/game/creatures_rogue_game.dart';
 import '../player/player.dart';
 
 class Stairs extends PositionComponent
-    with CollisionCallbacks, HasGameRef<CreaturesRogueGame> {
+    with CollisionCallbacks, HasGameReference<CreaturesRogueGame> {
   late final Sprite sprite;
   final Paint _paint = Paint()..filterQuality = FilterQuality.none;
 
@@ -23,7 +23,7 @@ class Stairs extends PositionComponent
   @override
   Future onLoad() async {
     // Crie um trapdoor.png na sua pasta de assets
-    sprite = await gameRef.loadSprite('tileset/stairs.png');
+    sprite = await game.loadSprite('tileset/stairs.png');
     add(RectangleHitbox(collisionType: CollisionType.passive));
     priority = ySortPriority(position.y + size.y / 2);
   }
@@ -42,7 +42,7 @@ class Stairs extends PositionComponent
       // Quando o jogador pisa no alçapão, anima a transição (círculo fecha,
       // troca o andar por baixo, círculo abre) em vez de trocar na cara.
       _avancado = true;
-      gameRef.startLevelTransition();
+      game.startLevelTransition();
     }
   }
 }

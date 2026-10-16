@@ -1,5 +1,4 @@
 import 'package:creatures_rogue/game/components/effects/dot.dart';
-import 'package:creatures_rogue/game/components/projeteis/explosion_hitbox.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';

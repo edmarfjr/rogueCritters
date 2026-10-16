@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 //import 'package:creatures_rogue/game/components/core/palette.dart';
 import '../utils/palette_swapper.dart'; 
 
-class SpriteEffect extends SpriteAnimationComponent with HasGameRef {
+class SpriteEffect extends SpriteAnimationComponent with HasGameReference {
   final String spritePath;
   final Color corClara;
   final Color corEscura;

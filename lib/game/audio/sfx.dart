@@ -7,7 +7,7 @@ enum Sfx {
   dash,
   retorno,
   liberar,
-  enemy_die,
+  enemyDie,
   btn,
   stairs,
   die,

@@ -3,7 +3,6 @@ import 'package:creatures_rogue/game/components/projeteis/projectile.dart';
 import 'package:flame/components.dart';
 import 'package:creatures_rogue/game/components/creatures/ability.dart';
 import 'package:creatures_rogue/game/components/creatures/ability_user.dart';
-import 'package:creatures_rogue/game/components/projeteis/explosion_hitbox.dart';
 
 /// Evolução de [Mordida]: duas dentadas em vez de uma, a segunda mais à
 /// frente.
@@ -41,7 +40,6 @@ class MordidaEvo extends Ability {
     // na de fora leva menos que a mordida antiga. Acertar de perto continua
     // sendo melhor.
     final dano = user.creatureData.stats.ataque * coef;
-    final frente = dir.normalized();
 
      
 

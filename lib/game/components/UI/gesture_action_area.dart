@@ -58,6 +58,9 @@ class GestureActionArea extends PositionComponent
   });
 
   @override
+  // `canvasSize`, e não `size`: o corpo atribui o `size` do PRÓPRIO
+  // componente, e um parâmetro com esse nome o esconderia.
+  // ignore: avoid_renaming_method_parameters
   void onGameResize(Vector2 canvasSize) {
     super.onGameResize(canvasSize);
     // Metade direita da tela, abaixo da faixa reservada do topo — mesma

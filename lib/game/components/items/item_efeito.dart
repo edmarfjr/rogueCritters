@@ -2159,28 +2159,21 @@ class Ninhada extends ItemEfeito {
 /// Sem isso ele acumularia os dois papeis e voltaria a ser a Coleira.
 class NinhoOrbital extends OrbitProjectile {
   NinhoOrbital({
-    required PositionComponent owner,
-    required double anguloAtual,
+    required super.owner,
+    required super.anguloAtual,
     required double raio,
-    required double velocidadeAngular,
+    required super.velocidadeAngular,
     required this.danoTiro,
     required this.intervaloTiro,
     required this.alcance,
     required this.velocidadeTiro,
-    CreatureType tipo = CreatureType.neutro,
-    String sprPath = 'projeteis/proj1.png',
-    Color cor1 = Palette.bege,
-    Color cor2 = Palette.marrom,
+    super.tipo,
+    super.sprPath = 'projeteis/proj1.png',
+    super.cor1 = Palette.bege,
+    super.cor2 = Palette.marrom,
   }) : super(
-         owner: owner,
-         anguloAtual: anguloAtual,
          raioOrbita: raio,
-         velocidadeAngular: velocidadeAngular,
          dmg: 0,
-         tipo: tipo,
-         sprPath: sprPath,
-         cor1: cor1,
-         cor2: cor2,
          atravessaObstaculos: true
        );
 
@@ -3440,7 +3433,7 @@ class PresasDeVampiro extends ItemEfeito {
       context.l10n.item_presasDeVampiroDesc;
 
   @override
-  void aoMatarInimigo(Player player, Enemy inimigo) {
+  void aoMatarInimigo(Player player, Enemy alvo) {
     player.abatesParaVampiro++;
     if (player.abatesParaVampiro < abates) return;
     player.abatesParaVampiro = 0;

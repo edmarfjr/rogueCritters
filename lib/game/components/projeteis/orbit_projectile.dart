@@ -9,13 +9,12 @@ import 'projectile.dart';
 /// `atravessa` bem alto evita que o primeiro acerto o destrua — quem encerra
 /// a órbita é o `lifeTime` (null = gira pra sempre, até o dono limpar).
 class OrbitProjectile extends Projectile {
-  final PositionComponent owner;
   double anguloAtual;
   final double raioOrbita;
   final double velocidadeAngular;
 
   OrbitProjectile({
-    required this.owner,
+    required super.owner,
     required this.anguloAtual,
     required this.raioOrbita,
     required this.velocidadeAngular,
@@ -30,7 +29,6 @@ class OrbitProjectile extends Projectile {
     super.radius,
     super.size,
   }) : super(
-          owner: owner,
           position: owner.absolutePosition,
           direction: Vector2(1, 0),
           speed: 0,

@@ -2,7 +2,6 @@ import 'package:flame/components.dart';
 import 'package:creatures_rogue/game/components/creatures/creature_registry.dart';
 import 'package:creatures_rogue/game/components/projeteis/explosion_hitbox.dart';
 import '../enemy.dart';
-import '../enemy_mixins.dart';
 
 /// Urso de Planta como inimigo: sem projétil nenhum, só avança devagar e sem
 /// parar. Chegando perto, prepara e solta uma pancada que repele. É o inimigo

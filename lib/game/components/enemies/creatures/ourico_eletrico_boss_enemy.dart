@@ -7,7 +7,6 @@ import 'package:creatures_rogue/game/components/map/obstacle.dart';
 import 'package:creatures_rogue/game/components/map/wall_barrier.dart';
 import 'package:creatures_rogue/game/components/projeteis/explosion_hitbox.dart';
 import '../enemy.dart';
-import '../enemy_mixins.dart';
 
 /// Ouriço Elétrico Boss — mesma regra da normal (bater nele empurra você pra
 /// longe numa explosão elétrica), só que ele também ataca por conta própria:

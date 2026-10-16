@@ -33,7 +33,7 @@ class _PauseMenuOverlayState extends State<PauseMenuOverlay> {
   @override
   Widget build(BuildContext context) {
     return ResponsiveOverlayScaffold(
-      background: Palette.preto.withOpacity(0.7),
+      background: Palette.preto.withValues(alpha: 0.7),
       // Um pouco mais larga que o padrão: os cards de equipe (ver
       // `_EquipeRow`) precisam de espaço pra caber 2-3 lado a lado antes de
       // `Wrap` empilhar.

@@ -3,7 +3,6 @@ import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/creatures/creature_registry.dart';
 import 'package:creatures_rogue/game/components/projeteis/explosion_hitbox.dart';
 import '../enemy.dart';
-import '../enemy_mixins.dart';
 import 'bomba_fogo_enemy.dart';
 
 /// Boss "Rei Bomba" — protótipo da fórmula de boss: dobro de tamanho, paleta

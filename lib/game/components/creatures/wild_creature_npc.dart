@@ -17,7 +17,7 @@ import 'package:creatures_rogue/game/creatures_rogue_game.dart';
 /// um sprite e um hitbox passivo. Encostar abre a ficha dela, com VOLTAR e
 /// ESCOLHER; escolher põe no banco com vida cheia (ver [recrutar]).
 class WildCreatureNpc extends PositionComponent
-    with CollisionCallbacks, HasGameRef<CreaturesRogueGame> {
+    with CollisionCallbacks, HasGameReference<CreaturesRogueGame> {
   final CreatureData creatureData;
 
   late final SpriteComponent _visual;
@@ -103,7 +103,7 @@ class WildCreatureNpc extends PositionComponent
   void onCollisionStart(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollisionStart(intersectionPoints, other);
     if (_recrutado || _ignorarToque > 0 || other is! Player) return;
-    gameRef.abrirInfoCriaturaSelvagem(this);
+    game.abrirInfoCriaturaSelvagem(this);
   }
 
   /// Chamado ao fechar a ficha com VOLTAR.
@@ -114,7 +114,7 @@ class WildCreatureNpc extends PositionComponent
   /// criatura continua ali.
   void recrutar() {
     if (_recrutado) return;
-    if (!gameRef.recrutarCriaturaSelvagem(creatureData)) return;
+    if (!game.recrutarCriaturaSelvagem(creatureData)) return;
     _recrutado = true;
     GameAudio.instance.play(Sfx.liberar);
     parent?.add(CompanionReviveEffect(position: position.clone()));

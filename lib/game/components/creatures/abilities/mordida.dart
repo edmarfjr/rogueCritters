@@ -3,7 +3,6 @@ import 'package:creatures_rogue/game/components/projeteis/projectile.dart';
 import 'package:flame/components.dart';
 import 'package:creatures_rogue/game/components/creatures/ability.dart';
 import 'package:creatures_rogue/game/components/creatures/ability_user.dart';
-import 'package:creatures_rogue/game/components/projeteis/explosion_hitbox.dart';
 
 /// Tubarão de Água — botão A. Mordida curta e pesada bem na frente, com
 /// empurrão forte — o ponto não é só o dano, é afastar quem mordeu.

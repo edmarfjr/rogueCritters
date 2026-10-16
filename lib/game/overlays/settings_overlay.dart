@@ -211,6 +211,8 @@ class _SettingsOverlayState extends State<SettingsOverlay> {
   /// Remonta os controles do jogo alem de gravar a preferencia: ligar ou
   /// desligar isto muda o que esta montado na arvore do Flame, e sem o
   /// `_setupControles` a troca so apareceria na proxima abertura do app.
+  // Desligado da tela por enquanto; mantido pra voltar.
+  // ignore: unused_element
   Future<void> _alternarControlesNaTela(bool valor) async {
     await GameSettings.instance.setControlesNaTela(valor);
     widget.game.remontarControles();

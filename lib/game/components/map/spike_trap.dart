@@ -24,7 +24,7 @@ enum _FaseArmadilha { esperando, subindo, ativa, descendo }
 ///
 /// `trap.png` é uma tira de 4 quadros 16x16: esperando, subindo, ativa,
 /// descendo — nessa ordem.
-class SpikeTrap extends PositionComponent with CollisionCallbacks, HasGameRef {
+class SpikeTrap extends PositionComponent with CollisionCallbacks, HasGameReference {
   static const double _duracaoSubida = 0.5;
   static const double duracaoAtiva = 1.5;
   static const double _duracaoDescida = 0.2;

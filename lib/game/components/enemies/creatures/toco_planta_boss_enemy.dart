@@ -5,7 +5,6 @@ import 'package:creatures_rogue/game/components/map/obstacle.dart';
 import 'package:creatures_rogue/game/components/map/wall_barrier.dart';
 import 'package:creatures_rogue/game/components/projeteis/orbit_projectile.dart';
 import '../enemy.dart';
-import '../enemy_mixins.dart';
 
 /// Toco de Madeira Boss: dois anéis de espinhos, um girando em cada sentido,
 /// em vez de um só — a leitura vira "onde os dois anéis se cruzam", não só

@@ -37,7 +37,7 @@ class EvolutionOverlay extends StatefulWidget {
 
 class _EvolutionOverlayState extends State<EvolutionOverlay>
     with SingleTickerProviderStateMixin {
-  static const double _boxSize = 120;
+  static const double _boxSize = 180;
 
   /// Raio da circunferência "aberta" — início do fechamento, e ponto de
   /// partida da reabertura.
@@ -120,8 +120,8 @@ class _EvolutionOverlayState extends State<EvolutionOverlay>
         child: Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Palette.preto,
-            border: const BordaDupla(cor: Palette.branco, espessura: 3),
+            color: Palette.branco,
+            border: const BordaDupla(cor: Palette.preto, espessura: 3),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -233,7 +233,7 @@ class _EvolutionOverlayState extends State<EvolutionOverlay>
         height: _boxSize,
         // Só esta janela é preta — o resto do diálogo continua no estilo
         // branco/preto normal (ver `build`).
-        color: Palette.preto,
+        color: Palette.branco,
         child: Stack(
           alignment: Alignment.center,
           children: [
@@ -243,7 +243,7 @@ class _EvolutionOverlayState extends State<EvolutionOverlay>
               // (alfa) da imagem — silhueta sólida branca. Ver fórmula do
               // Porter-Duff `srcATop`.
               colorFilter: ColorFilter.mode(
-                Palette.branco.withAlpha((alphaBranco * 255).round()),
+                Palette.amarelo.withAlpha((alphaBranco * 255).round()),
                 BlendMode.srcATop,
               ),
               child: SizedBox(

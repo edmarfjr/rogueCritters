@@ -65,7 +65,7 @@ enum LadoSala {
   };
 }
 
-class RoomComponent extends PositionComponent with HasGameRef {
+class RoomComponent extends PositionComponent with HasGameReference {
   final RoomData data;
   final Player player;
 
@@ -176,8 +176,8 @@ class RoomComponent extends PositionComponent with HasGameRef {
   Future<void> onLoad() async {
     super.onLoad();
 
-    //  floorSprite = await gameRef.loadSprite('tileset/floor.png');
-    //  doorSprite = await gameRef.loadSprite('tileset/door1.png');
+    //  floorSprite = await game.loadSprite('tileset/floor.png');
+    //  doorSprite = await game.loadSprite('tileset/door1.png');
 
     floorPaint = Paint()
       ..filterQuality = FilterQuality.none
@@ -390,6 +390,8 @@ class RoomComponent extends PositionComponent with HasGameRef {
     );
   }
 
+  // Ferramenta de teste: ligada à mão no `onLoad` da sala inicial.
+  // ignore: unused_element
   void _spawnSalaDeTeste() {
     final candidatas = CreatureRegistry.all
         .where((c) => c.evoluir != null && c.id != player.creatureData.id)
@@ -1316,8 +1318,9 @@ class RoomComponent extends PositionComponent with HasGameRef {
 
   bool _isOnCamera() {
     final cam = _camera ?? CameraComponent.currentCamera;
-    if (cam == null || !cam.isMounted)
+    if (cam == null || !cam.isMounted) {
       return true; // sem câmera ainda: não corta nada
+    }
     _camera = cam;
     return cam.visibleWorldRect.overlaps(toAbsoluteRect());
   }

@@ -167,6 +167,9 @@ class DynamicJoystickComponent extends PositionComponent
   static bool retrato(Vector2 canvasSize) => canvasSize.y > canvasSize.x;
 
   @override
+  // `canvasSize`, e não `size`: o corpo atribui o `size` do PRÓPRIO
+  // componente, e um parâmetro com esse nome o esconderia.
+  // ignore: avoid_renaming_method_parameters
   void onGameResize(Vector2 canvasSize) {
     super.onGameResize(canvasSize);
     // A área de captura acompanha o tamanho real da tela — sem isso, girar o

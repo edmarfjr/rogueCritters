@@ -1389,6 +1389,27 @@ class CreaturesRogueGame extends FlameGame
     );
   }
 
+  /// App foi pra segundo plano (ligação, botão home, troca de app). O Flame
+  /// já para o motor sozinho, mas o RETOMA sozinho na volta — e o jogador
+  /// cairia no meio do combate sem saber onde estava. Com a run rolando,
+  /// abre o menu de pausa: aí a volta espera um toque.
+  ///
+  /// Só quando o motor estava rodando: com ele já parado, alguma janela
+  /// (evolução, evento, ficha da criatura) está aberta e segura o jogo.
+  @override
+  void lifecycleStateChange(AppLifecycleState state) {
+    final estavaRodando = !paused;
+    super.lifecycleStateChange(state);
+    final saiu = state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached;
+    if (!saiu || !estavaRodando || !_runStarted) return;
+    if (!overlays.isActive('Hud') || overlays.isActive('PauseMenu')) return;
+    // `pauseEngine` daqui desarma o "retomar na volta" do Flame.
+    pauseEngine();
+    overlays.add('PauseMenu');
+  }
+
   @override
   KeyEventResult onKeyEvent(
     KeyEvent event,
@@ -1425,9 +1446,9 @@ class CreaturesRogueGame extends FlameGame
   }
 
   @override
-  void onGameResize(Vector2 canvasSize) {
-    super.onGameResize(canvasSize);
-    _reflowControles(canvasSize);
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    _reflowControles(size);
   }
 
   /// PAISAGEM: vidro da câmera intocado — a resolução fixa (ver `onLoad`) já

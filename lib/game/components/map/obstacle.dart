@@ -58,7 +58,7 @@ Vector2 empurraoParaFora({required Rect corpo, required Rect alvo}) {
   return Vector2(0, paraCima < paraBaixo ? -paraCima : paraBaixo);
 }
 
-abstract class Obstacle extends PositionComponent with HasGameRef {
+abstract class Obstacle extends PositionComponent with HasGameReference {
   /// Criado junto com o componente, não dentro do `onLoad`. A porta liga e
   /// desliga a colisão pelo hitbox, e enquanto ele só existia depois do
   /// `onLoad` (que espera trocas de paleta) um `close()` chamado antes disso

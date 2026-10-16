@@ -13,7 +13,7 @@ import 'package:creatures_rogue/game/components/map/obstacle.dart';
 
 
 // 1. A BOMBA
-class Bomb extends SpriteAnimationComponent with CollisionCallbacks, HasGameRef {
+class Bomb extends SpriteAnimationComponent with CollisionCallbacks, HasGameReference {
   double timer = 2.0; 
   Vector2 velocity = Vector2.zero();
   final double friction = 80.0; // O quão rápido a bomba para de deslizar

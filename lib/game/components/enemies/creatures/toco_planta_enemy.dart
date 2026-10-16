@@ -5,7 +5,6 @@ import 'package:creatures_rogue/game/components/map/obstacle.dart';
 import 'package:creatures_rogue/game/components/map/wall_barrier.dart';
 import 'package:creatures_rogue/game/components/projeteis/orbit_projectile.dart';
 import '../enemy.dart';
-import '../enemy_mixins.dart';
 
 /// Toco de Madeira como inimigo: quase não anda, e três espinhos giram ao
 /// redor dele o tempo todo — a mesma órbita da versão jogável, só que

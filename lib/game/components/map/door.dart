@@ -15,30 +15,20 @@ class Door extends Obstacle {
   late Sprite _closedSprite;
   late Sprite _openSprite;
 
-  final Color cor1;
-  final Color cor2;
-  final Color cor3;
   final Color cor4;
-
-  final String spritePath;
 
   Door({
     required super.position,
     required this.angleVal,
-    this.cor1 = Palette.marrom,
-    this.cor2 = Palette.onyx,
-    this.cor3 = Palette.verde,
+    super.cor1 = Palette.marrom,
+    super.cor2 = Palette.onyx,
+    super.cor3 = Palette.verde,
     this.cor4 = Palette.branco,
     bool isOpen = false,
     this.flipX = false,
-    required this.spritePath,
+    required super.spritePath,
   })  : _isOpen = isOpen,
-        
         super(
-          spritePath: spritePath,
-          cor1: cor1,
-          cor2: cor2,  
-          cor3: cor3,  
           size: Vector2(16, 16),
           collisionType: isOpen ? CollisionType.inactive : CollisionType.passive,
         ) {

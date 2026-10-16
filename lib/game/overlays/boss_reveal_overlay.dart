@@ -1,4 +1,3 @@
-import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/audio/ui_sfx.dart';
 import 'package:creatures_rogue/game/components/core/ui_theme.dart';
 import 'package:creatures_rogue/game/components/core/responsive.dart';

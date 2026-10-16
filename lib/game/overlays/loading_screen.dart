@@ -1,4 +1,3 @@
-import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:flutter/material.dart';
 
 import 'package:creatures_rogue/game/components/core/ui_theme.dart';

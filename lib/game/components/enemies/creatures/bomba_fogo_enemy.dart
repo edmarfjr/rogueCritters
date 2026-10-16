@@ -2,7 +2,6 @@ import 'package:flame/components.dart';
 import 'package:creatures_rogue/game/components/creatures/creature_registry.dart';
 import 'package:creatures_rogue/game/components/projeteis/explosion_hitbox.dart';
 import '../enemy.dart';
-import '../enemy_mixins.dart';
 
 /// Bomba de Fogo como inimigo: corre atrás do jogador e se explode ao chegar
 /// perto. Também explode quando morre — matar ele de perto não é de graça.

@@ -1,6 +1,6 @@
 {
-    "name": "Creatures Rogue",
-    "short_name": "Creatures Rogue",
+    "name": "RogueCritters",
+    "short_name": "RogueCritters",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

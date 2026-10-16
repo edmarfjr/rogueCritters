@@ -1,5 +1,4 @@
 import 'package:flame/components.dart';
-import 'package:flame/effects.dart';
 import 'package:creatures_rogue/game/components/creatures/ability.dart';
 import 'package:creatures_rogue/game/components/effects/ghost_effect.dart';
 import 'package:creatures_rogue/game/components/creatures/ability_user.dart';

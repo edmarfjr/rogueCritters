@@ -7,7 +7,7 @@ import 'package:creatures_rogue/game/components/creatures/abilities/disparada_ve
 import 'package:creatures_rogue/game/components/creatures/abilities/esquiva_tornado_evo.dart';
 import 'package:creatures_rogue/game/components/creatures/abilities/jato_aquatico_evo.dart';
 import 'package:creatures_rogue/game/components/creatures/abilities/jogada_de_corpo_evo.dart';
-import 'package:creatures_rogue/game/components/creatures/abilities/mega_soco%20evo.dart';
+import 'package:creatures_rogue/game/components/creatures/abilities/mega_soco_evo.dart';
 import 'package:creatures_rogue/game/components/creatures/abilities/soco_flamejante_evo.dart';
 import 'package:creatures_rogue/game/components/creatures/abilities/tiro_de_gelo.dart';
 import 'package:flame/components.dart';
@@ -967,11 +967,6 @@ class CreatureRegistry {
 
   /// Evolução do Calamarin (Kalamarok, provisório). O tentáculo passa a girar
   /// em volta e a tinta vira cortina contra tiro.
-  ///
-  /// `spritePath` aponta pro sprite da BASE de propósito: o
-  /// `actors/sereiaAguaEvo.png` ainda não existe, e um caminho pra arquivo
-  /// inexistente derruba o `Flame.images.load` no instante em que a criatura
-  /// evolui. Trocar aqui quando a arte chegar.
   static final CreatureData sereiaAguaEvo = CreatureData(
     id: 'sereia_agua',
     nome: 'Kalamarok',

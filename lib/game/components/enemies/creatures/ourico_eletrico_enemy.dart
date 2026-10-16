@@ -7,7 +7,6 @@ import 'package:creatures_rogue/game/components/map/obstacle.dart';
 import 'package:creatures_rogue/game/components/map/wall_barrier.dart';
 import 'package:creatures_rogue/game/components/projeteis/explosion_hitbox.dart';
 import '../enemy.dart';
-import '../enemy_mixins.dart';
 
 /// Ouriço Elétrico como inimigo: não persegue e não atira — só vaga devagar.
 /// O perigo é bater nele: cada golpe recebido solta uma explosão elétrica ao
