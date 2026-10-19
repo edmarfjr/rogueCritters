@@ -67,6 +67,10 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
+  # Paleta da tela em 4 tons (ver lib/game/paleta_tela.dart).
+  shaders:
+    - shaders/paleta4.frag
+
   assets:
     - assets/images/
     - assets/images/actors/

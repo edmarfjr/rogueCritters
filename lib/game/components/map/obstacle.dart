@@ -10,6 +10,7 @@ import 'package:creatures_rogue/game/components/core/palette.dart';
 import 'package:creatures_rogue/game/components/items/heart_half_pickup.dart';
 import 'package:creatures_rogue/game/components/items/heart_pickup.dart';
 import 'package:creatures_rogue/game/components/items/xp_pickup.dart';
+import 'package:creatures_rogue/game/components/items/item_efeito.dart';
 import 'package:creatures_rogue/game/creatures_rogue_game.dart';
 import 'package:creatures_rogue/game/components/utils/palette_swapper.dart';
 
@@ -133,6 +134,10 @@ class Rock extends Obstacle {
   /// Mesma trava, pelo mesmo motivo, que a de `Enemy._morto`.
   bool _quebrada = false;
 
+  /// Chance de a pedra largar coração ou moeda (o XP é à parte). O
+  /// `VeioRico` troca por uma maior.
+  static const double chanceDropBase = 0.05;
+
   void blowUp() {
     if (_quebrada) return;
     _quebrada = true;
@@ -145,13 +150,17 @@ class Rock extends Obstacle {
     // O jogador é buscado pelo jogo porque a pedra não tem referência pra ele
     // — `blowUp` é chamado pela `ExplosionHitbox`, que também não tem.
     final jogo = game;
+    var chanceDrop = chanceDropBase;
     if (jogo is CreaturesRogueGame) {
       for (final item in jogo.player.itens) {
         item.aoQuebrarPedra(jogo.player, this);
       }
+      if (jogo.player.itens.any((i) => i is VeioRico)) {
+        chanceDrop = VeioRico.chanceDrop;
+      }
     }
 
-    if (random.nextDouble() < 0.05) {
+    if (random.nextDouble() < chanceDrop) {
       double itemChance = random.nextDouble();
       if (itemChance <= 0.05) {
         parent?.add(HeartPickup(position: position.clone()));

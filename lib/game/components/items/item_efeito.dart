@@ -22,7 +22,6 @@ import 'package:creatures_rogue/game/components/projeteis/orbit_projectile.dart'
 import 'package:creatures_rogue/game/components/projeteis/projectile.dart';
 import 'package:creatures_rogue/game/components/items/coin_pickup.dart';
 import 'package:creatures_rogue/game/components/items/heart_half_pickup.dart';
-import 'package:creatures_rogue/game/components/items/xp_pickup.dart';
 import 'package:creatures_rogue/game/components/map/obstacle.dart';
 import 'package:creatures_rogue/game/components/effects/text_effect.dart';
 import 'package:creatures_rogue/game/components/items/collectible.dart';
@@ -2310,15 +2309,17 @@ class Espolio extends ItemEfeito {
   }
 }
 
-/// Toda pedra quebrada larga alguma coisa.
+/// Pedra quebrada larga coração ou moeda com mais frequência: de
+/// [Rock.chanceDropBase] (5%) pra [chanceDrop].
 ///
-/// Sem ele a pedra dá coração ou moeda em 5% das vezes, ou seja: quebrar
-/// pedra é quase só limpar o caminho. Com ele o cenário vira recurso, que é
-/// um eixo de progressão que o jogo ainda não tinha.
+/// Chance, e não drop garantido: largar algo em TODA pedra (a versão antiga,
+/// moeda e XP sempre) transformava o cenário numa fonte de recurso maior que
+/// o combate. A pedra continua sendo principalmente caminho, só que vale
+/// mais a pena quebrar. Quem lê a chance é o `Rock.blowUp`.
 class VeioRico extends ItemEfeito {
   const VeioRico();
 
-  static const int xpExtra = 2;
+  static const double chanceDrop = 0.30;
 
   @override
   String get id => 'veioRico';
@@ -2332,24 +2333,6 @@ class VeioRico extends ItemEfeito {
   String nome(BuildContext context) => context.l10n.item_veioRico;
   @override
   String descricao(BuildContext context) => context.l10n.item_veioRicoDesc;
-
-  @override
-  void aoQuebrarPedra(Player player, Rock pedra) {
-    final mundo = pedra.parent;
-    if (mundo == null) return;
-    final rng = Random();
-
-    mundo.add(CoinPickup(position: pedra.position.clone()));
-    for (var i = 0; i < xpExtra; i++) {
-      mundo.add(
-        XpPickup(
-          position:
-              pedra.position +
-              Vector2(rng.nextDouble() * 16 - 8, rng.nextDouble() * 16 - 8),
-        ),
-      );
-    }
-  }
 }
 
 /// Pedra quebrada estoura.

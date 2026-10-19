@@ -51,6 +51,8 @@ void main() async {
   await CreatureProgress.instance.load();
   await GameSettings.instance.load();
   await RunSave.instance.load();
+  // Antes do `runApp`: o filtro da paleta já monta com o shader pronto.
+  await carregarShaderPaleta();
   // Sem `await`: os .wav são pequenos, mas carregar áudio não pode ser o que
   // atrasa a primeira tela. `GameAudio.play()` já é seguro de chamar antes
   // disso terminar — só fica mudo até o pool ficar pronto.
