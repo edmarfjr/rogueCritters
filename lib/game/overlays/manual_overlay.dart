@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flame/components.dart' show Vector2;
 import 'package:flutter/material.dart';
 import 'package:creatures_rogue/game/audio/ui_sfx.dart';
@@ -166,35 +168,90 @@ class _ManualOverlayState extends State<ManualOverlay> {
   // ------------------------------------------------------------ página
 
   Widget _folha(_Pagina pagina, int indice) {
-    return Container(
-      color: _papel,
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (pagina.titulo != null) ...[
-            Text(
-              pagina.titulo!,
-              style: const TextStyle(
-                color: _destaque,
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
+    return CustomPaint(
+      // Semente = número da página: cada folha tem as próprias manchas, e
+      // elas não mudam ao virar e voltar.
+      painter: _PapelEnvelhecido(semente: indice),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (pagina.titulo != null) ...[
+              // Cabeçalho do livreto: título à esquerda, logo no canto.
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Text(
+                      pagina.titulo!,
+                      style: const TextStyle(
+                        color: _destaque,
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  SpriteUi(
+                    caminho: 'title.png',
+                    tamanho: Vector2(140, 28),
+                    cor1: Palette.lemon,
+                    cor2: Palette.indigo,
+                  ),
+                ],
               ),
+              const SizedBox(height: 3),
+              Container(height: 2, color: _tinta),
+              const SizedBox(height: 8),
+            ],
+            // Conteúdo a partir do topo; capa e contracapa centradas. O
+            // que não cabe numa tela baixa rola, em vez de estourar.
+            Expanded(
+              // Capa e contracapa (as páginas sem título) ficam no centro.
+              child: pagina.titulo == null
+                  ? LayoutBuilder(
+                      builder: (context, c) => SingleChildScrollView(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(minHeight: c.maxHeight),
+                          child: Center(child: pagina.corpo()),
+                        ),
+                      ),
+                    )
+                  : SingleChildScrollView(child: pagina.corpo()),
             ),
-            const SizedBox(height: 3),
-            Container(height: 2, color: _tinta),
-            const SizedBox(height: 8),
+            // Capa sem número, como no livreto. O número vai no canto de
+            // fora: à esquerda nas páginas da esquerda do livreto aberto.
+            if (indice > 0)
+              Align(
+                alignment: indice.isEven
+                    ? Alignment.centerLeft
+                    : Alignment.centerRight,
+                child: _numeroPagina(indice + 1),
+              ),
           ],
-          // Página que não cabe numa tela baixa rola, em vez de estourar.
-          Expanded(child: SingleChildScrollView(child: pagina.corpo())),
-          // Capa sem número, como no livreto.
-          if (indice > 0)
-            Text(
-              '- ${indice + 1} -',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: _tinta, fontSize: 11),
-            ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _numeroPagina(int numero) {
+    return Container(
+      width: 22,
+      height: 22,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: _destaque,
+        shape: BoxShape.circle,
+        border: Border.all(color: _tinta, width: 2),
+      ),
+      child: Text(
+        '$numero',
+        style: const TextStyle(
+          color: Palette.branco,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -289,7 +346,7 @@ class _ManualOverlayState extends State<ManualOverlay> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: _ladoSprite + 12,
+            width: _ladoSprite * 2,
             child: Center(child: icone),
           ),
           const SizedBox(width: 8),
@@ -408,7 +465,6 @@ class _ManualOverlayState extends State<ManualOverlay> {
         final largura = c.maxWidth;
         return Column(
           children: [
-            const SizedBox(height: 12),
             SpriteUi(
               caminho: 'title.png',
               tamanho: Vector2(largura, largura / 5),
@@ -428,27 +484,28 @@ class _ManualOverlayState extends State<ManualOverlay> {
               spacing: 10,
               alignment: WrapAlignment.center,
               children: [
-                for (final c in [
-                  CreatureRegistry.roedorFogo,
-                  CreatureRegistry.tartarugaPlanta,
-                  CreatureRegistry.sapoAgua,
-                  CreatureRegistry.aveEletrica,
-                ])
-                  CreatureSprite(creature: c, size: _ladoSprite),
+                //for (final c in [
+                //  CreatureRegistry.roedorFogo,
+                //  CreatureRegistry.tartarugaPlanta,
+                //  CreatureRegistry.sapoAgua,
+                //  CreatureRegistry.aveEletrica,
+                //])
+                //  CreatureSprite(creature: c, size: _ladoSprite),
+                _sprite('logo.png', _ladoSprite * 5),
               ],
             ),
-            const SizedBox(height: 18),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                border: Border.all(color: _tinta, width: 2),
-              ),
-              child: _texto(
-                l.manual_capaAviso,
-                tamanho: 11,
-                alinhamento: TextAlign.center,
-              ),
-            ),
+            // const SizedBox(height: 18),
+            //Container(
+            //  padding: const EdgeInsets.all(8),
+            //  decoration: BoxDecoration(
+            //    border: Border.all(color: _tinta, width: 2),
+            //  ),
+            // child: _texto(
+            //   l.manual_capaAviso,
+            //   tamanho: 11,
+            //   alinhamento: TextAlign.center,
+            // ),
+            // ),
           ],
         );
       },
@@ -835,7 +892,7 @@ class _ManualOverlayState extends State<ManualOverlay> {
       children: [
         _paragrafo(l.manual_masmorraTexto),
         _linhaIcone(
-          Column(
+          Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               _sprite(
@@ -1012,8 +1069,8 @@ class _ManualOverlayState extends State<ManualOverlay> {
         // O chefe só em silhueta: quem ele é fica pra masmorra contar.
         Center(
           child: CreatureSprite(
-            creature: CreatureRegistry.ursoPlanta,
-            size: _ladoSprite * 1.5,
+            creature: CreatureRegistry.aveEletricaEvo,
+            size: _ladoSprite * 3,
             tudoPreto: true,
           ),
         ),
@@ -1054,7 +1111,6 @@ class _ManualOverlayState extends State<ManualOverlay> {
   Widget _contracapa(BuildContext context) {
     return Column(
       children: [
-        const SizedBox(height: 30),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -1080,4 +1136,125 @@ class _ManualOverlayState extends State<ManualOverlay> {
       ],
     );
   }
+}
+
+/// Papel envelhecido do livreto, desenhado por código: amarelado irregular,
+/// manchas de umidade, grão, vinheta e margem gasta. Tudo em tons da paleta
+/// do jogo, e sorteado com a [semente] da página — a mesma folha sempre
+/// envelhece igual.
+class _PapelEnvelhecido extends CustomPainter {
+  final int semente;
+  const _PapelEnvelhecido({required this.semente});
+
+  /// Lado de cada grão, em px.
+  static const double _grao = 2;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final folha = Offset.zero & size;
+    final rng = Random(semente * 7919 + 17);
+    final pixel = Paint()..isAntiAlias = false;
+
+    canvas.drawRect(folha, Paint()..color = UiTheme.manualPapelCor);
+
+    // Amarelado irregular: nódoas grandes e suaves.
+    for (var i = 0; i < 5; i++) {
+      final centro = Offset(
+        rng.nextDouble() * size.width,
+        rng.nextDouble() * size.height,
+      );
+      final raio = size.shortestSide * (0.15 + rng.nextDouble() * 0.25);
+      canvas.drawCircle(
+        centro,
+        raio,
+        Paint()
+          ..shader = RadialGradient(
+            colors: [
+              Palette.picotronBege.withValues(alpha: 0.35),
+              Palette.picotronBege.withValues(alpha: 0),
+            ],
+          ).createShader(Rect.fromCircle(center: centro, radius: raio)),
+      );
+    }
+
+    // Marcas de copo/umidade: zero a duas por página.
+    final aneis = rng.nextInt(3);
+    for (var i = 0; i < aneis; i++) {
+      final centro = Offset(
+        rng.nextDouble() * size.width,
+        rng.nextDouble() * size.height,
+      );
+      final raio = 8 + rng.nextDouble() * 14;
+      canvas.drawCircle(
+        centro,
+        raio,
+        Paint()..color = Palette.marrom.withValues(alpha: 0.05),
+      );
+      canvas.drawCircle(
+        centro,
+        raio,
+        Paint()
+          ..color = Palette.marrom.withValues(alpha: 0.18)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5,
+      );
+    }
+
+    // Grão: pontinhos escuros e claros, alinhados numa grade de [_grao] px
+    // pra ler como pixel art. Subir [_grao] engrossa o grão.
+    final escuro = Palette.chocolate.withValues(alpha: 0.16);
+    final claro = Palette.branco.withValues(alpha: 0.2);
+    final pontos = (size.width * size.height / (180 * _grao)).round();
+    for (var i = 0; i < pontos; i++) {
+      pixel.color = rng.nextBool() ? escuro : claro;
+      canvas.drawRect(
+        Rect.fromLTWH(
+          (rng.nextDouble() * size.width / _grao).floorToDouble() * _grao,
+          (rng.nextDouble() * size.height / _grao).floorToDouble() * _grao,
+          _grao,
+          _grao,
+        ),
+        pixel,
+      );
+    }
+
+    // Vinheta: as bordas escurecem, como papel que pegou luz e mão.
+    canvas.drawRect(
+      folha,
+      Paint()
+        ..shader = RadialGradient(
+          radius: 0.95,
+          colors: [
+            Palette.chocolate.withValues(alpha: 0),
+            Palette.chocolate.withValues(alpha: 0.32),
+          ],
+          stops: const [0.55, 1],
+        ).createShader(folha),
+    );
+
+    // Margem gasta: uma faixa irregular nos quatro lados.
+    pixel.color = Palette.chocolate.withValues(alpha: 0.22);
+    for (var x = 0.0; x < size.width; x += 3) {
+      canvas.drawRect(
+        Rect.fromLTWH(x, 0, 3, 1 + rng.nextInt(3).toDouble()),
+        pixel,
+      );
+      final baixo = 1 + rng.nextInt(3).toDouble();
+      canvas.drawRect(Rect.fromLTWH(x, size.height - baixo, 3, baixo), pixel);
+    }
+    for (var y = 0.0; y < size.height; y += 3) {
+      canvas.drawRect(
+        Rect.fromLTWH(0, y, 1 + rng.nextInt(3).toDouble(), 3),
+        pixel,
+      );
+      final direita = 1 + rng.nextInt(3).toDouble();
+      canvas.drawRect(
+        Rect.fromLTWH(size.width - direita, y, direita, 3),
+        pixel,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_PapelEnvelhecido antigo) => antigo.semente != semente;
 }
