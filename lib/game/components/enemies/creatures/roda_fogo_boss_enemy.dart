@@ -178,4 +178,9 @@ class RodaFogoBossEnemy extends Enemy {
       ),
     );
   }
+  @override
+  void death() {
+    unlockCreature();
+    super.death();
+  }
 }

@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/maldicoes.dart';
 import 'package:creatures_rogue/game/pactos.dart';
 import 'dart:async';
 import 'package:creatures_rogue/l10n/l10n_extensions.dart';
@@ -501,6 +502,67 @@ class Player extends PositionComponent
         text: texto,
         position: position.clone() + Vector2(0, -size.y / 2 - 4),
         color: cor,
+      ),
+    );
+  }
+
+  // ------------------------------------------------------------ maldições
+
+  /// Maldições ativas e quantas salas limpas faltam pra cada uma sumir (ver
+  /// [Maldicao]). Vai pro save, ao contrário do ovo: é o preço de algo que o
+  /// jogador já levou, e continuar a run não pode apagar a conta.
+  final Map<Maldicao, int> maldicoes = {};
+
+  bool temMaldicao(Maldicao m) => maldicoes.containsKey(m);
+
+  /// Aplica [m] por [Maldicao.salas] salas. Já ativa: só renova a contagem.
+  /// Não confere o [Maldicao.maximo] — quem oferece é que confere, porque a
+  /// oferta do pedestal foi decidida quando o andar nasceu.
+  void amaldicoar(Maldicao m) {
+    maldicoes[m] = Maldicao.salas;
+    GameAudio.instance.play(Sfx.campeao);
+    final contexto = game.buildContext!;
+    _avisoMaldicao(
+      contexto.l10n.maldicao_ganhou(m.nome(contexto), m.descricao(contexto)),
+      Palette.rosa,
+    );
+  }
+
+  /// Uma sala limpa (ver `RoomComponent._unlockRoom`): toda maldição anda um
+  /// passo, e as que chegam a zero se dissipam.
+  void avancarMaldicoes() {
+    if (maldicoes.isEmpty) return;
+    final contexto = game.buildContext!;
+    for (final m in maldicoes.keys.toList()) {
+      final restam = maldicoes[m]! - 1;
+      if (restam > 0) {
+        maldicoes[m] = restam;
+        continue;
+      }
+      maldicoes.remove(m);
+      GameAudio.instance.play(Sfx.liberar);
+      _avisoMaldicao(
+        contexto.l10n.maldicao_dissipou(m.nome(contexto)),
+        Palette.branco,
+      );
+    }
+  }
+
+  /// Tira todas de uma vez (Termas). Devolve se havia alguma.
+  bool purificarMaldicoes() {
+    if (maldicoes.isEmpty) return false;
+    maldicoes.clear();
+    return true;
+  }
+
+  /// Mais alto que o aviso do ovo: os dois podem sair na mesma sala limpa.
+  void _avisoMaldicao(String texto, Color cor) {
+    parent?.add(
+      TextEffect(
+        text: texto,
+        position: position.clone() + Vector2(0, -size.y / 2 - 16),
+        color: cor,
+        duration: TextEffect.duracaoLeitura,
       ),
     );
   }
@@ -1992,7 +2054,9 @@ class Player extends PositionComponent
     // regeneração — senão o tempo só andaria depois de já ter andado.
     if (energiaRegenPausa > 0) {
       energiaRegenPausa -= dt;
-    } else {
+    } else if (tempoParado > 0 || !temMaldicao(Maldicao.cansaco)) {
+      // `Cansaço`: só recupera parado. `tempoParado`, e não `velocity`,
+      // pelo mesmo motivo do `RaizProfunda` (ver a doc do campo).
       energia = (energia + energiaRegen * dt).clamp(0.0, energiaMax);
     }
     if (_cooldown1 > 0) _cooldown1 -= dt;
@@ -2562,6 +2626,12 @@ class Player extends PositionComponent
     if (event is KeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.digit1) useSlot(0);
       if (event.logicalKey == LogicalKeyboardKey.digit2) useSlot(1);
+      // Q = troca de criatura, o botão de troca da tela de toque.
+      final jogo = game;
+      if (event.logicalKey == LogicalKeyboardKey.keyQ &&
+          jogo is CreaturesRogueGame) {
+        jogo.trocarParaProximaCriatura();
+      }
     }
 
     return super.onKeyEvent(event, keysPressed);

@@ -1,6 +1,8 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:creatures_rogue/game/components/core/palette.dart';
+import 'package:creatures_rogue/game/creatures_rogue_game.dart';
+import 'package:creatures_rogue/game/maldicoes.dart';
 import '../map/dungeon_generator.dart';
 
 class MinimapHud extends PositionComponent with HasGameReference {
@@ -175,8 +177,18 @@ class MinimapHud extends PositionComponent with HasGameReference {
     canvas.save();
     canvas.clipRect(bgRect);
 
+    // `Névoa`: só a sala atual aparece.
+    final jogo = game;
+    final nevoa =
+        jogo is CreaturesRogueGame &&
+        jogo.player.temMaldicao(Maldicao.nevoa);
+
     // DESENHA AS SALAS
     for (var room in mapData.values) {
+      if (nevoa &&
+          (room.x != currentRoomCoords.x || room.y != currentRoomCoords.y)) {
+        continue;
+      }
       
       bool isCurrentRoom = room.x == currentRoomCoords.x && room.y == currentRoomCoords.y;
       

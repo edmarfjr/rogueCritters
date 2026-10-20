@@ -145,6 +145,13 @@ class UiTheme {
   /// Fundo de slot vazio ou apagado (retrato sem criatura, consumível,
   /// carga de sala gasta). Também com opacidade por componente.
   static const Color hudSlotFundoCor = Palette.cinzaEsc;
+
+  // Manual: livreto de papel envelhecido sobre a mesa.
+  static const Color manualPapelCor = Palette.bege;
+  static const Color manualTintaCor = Palette.onyx;
+  static const Color manualDestaqueCor = Palette.burgundy;
+  static const Color manualLinhaCor = Palette.picotronBege;
+  static const Color manualMesaCor = Palette.chocolate;
   
 }
 

@@ -148,4 +148,9 @@ class CogumeloPlantaBossEnemy extends Enemy {
       return;
     }
   }
+  @override
+  void death() {
+    unlockCreature();
+    super.death();
+  }
 }

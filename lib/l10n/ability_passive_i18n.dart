@@ -19,6 +19,12 @@ import 'package:creatures_rogue/game/components/creatures/abilities/voo_alto_evo
 import 'package:creatures_rogue/game/components/creatures/abilities/mordida_certeira_evo.dart';
 import 'package:creatures_rogue/game/components/creatures/abilities/latido_feroz_evo.dart';
 import 'package:creatures_rogue/game/components/creatures/abilities/arranhao_evo.dart';
+import 'package:creatures_rogue/game/components/creatures/abilities/arranhao.dart';
+import 'package:creatures_rogue/game/components/creatures/abilities/bicada_rapida.dart';
+import 'package:creatures_rogue/game/components/creatures/abilities/mordida_certeira.dart';
+import 'package:creatures_rogue/game/components/creatures/abilities/ericar_evo.dart';
+import 'package:creatures_rogue/game/components/creatures/abilities/choque_eletrico_evo.dart';
+import 'package:creatures_rogue/game/components/creatures/abilities/estocada_relampago_evo.dart';
 import 'package:creatures_rogue/game/components/creatures/abilities/salto_felino_evo.dart';
 import 'package:creatures_rogue/game/components/creatures/abilities/disparada_congelante_evo.dart';
 import 'package:creatures_rogue/game/components/creatures/abilities/disparada_flamejante.dart';
@@ -161,6 +167,12 @@ String abilityName(BuildContext context, Ability a) {
     RedemoinhoDeTentaculos() => l.abilityName_RedemoinhoDeTentaculos,
     EsguichoDeTinta() => l.abilityName_EsguichoDeTinta,
     CortinaDeTinta() => l.abilityName_CortinaDeTinta,
+    Arranhao() => l.abilityName_Arranhao,
+    BicadaRapida() => l.abilityName_BicadaRapida,
+    MordidaCerteira() => l.abilityName_MordidaCerteira,
+    EricarEvo() => l.abilityName_EricarEvo,
+    ChoqueEletricoEvo() => l.abilityName_ChoqueEletricoEvo,
+    EstocadaRelampagoEvo() => l.abilityName_EstocadaRelampagoEvo,
 
     _ => a.nome,
   };
@@ -242,6 +254,12 @@ String abilityDescription(BuildContext context, Ability a) {
     RedemoinhoDeTentaculos() => l.abilityDesc_RedemoinhoDeTentaculos,
     EsguichoDeTinta() => l.abilityDesc_EsguichoDeTinta,
     CortinaDeTinta() => l.abilityDesc_CortinaDeTinta,
+    Arranhao() => l.abilityDesc_Arranhao,
+    BicadaRapida() => l.abilityDesc_BicadaRapida,
+    MordidaCerteira() => l.abilityDesc_MordidaCerteira,
+    EricarEvo() => l.abilityDesc_EricarEvo,
+    ChoqueEletricoEvo() => l.abilityDesc_ChoqueEletricoEvo,
+    EstocadaRelampagoEvo() => l.abilityDesc_EstocadaRelampagoEvo,
 
     _ => a.descricao,
   };

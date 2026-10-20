@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/maldicoes.dart';
 import 'package:creatures_rogue/game/audio/sfx.dart';
 import 'package:creatures_rogue/game/components/effects/sprite_effect.dart';
 import 'package:flutter/material.dart';
@@ -2365,18 +2366,21 @@ class PeDeCabra extends ItemEfeito {
 
   @override
   void aoQuebrarPedra(Player player, Rock pedra) {
-    pedra.parent?.add(
-      ExplosionHitbox(
-        explosao: true,
-        position: pedra.position.clone(),
-        dmg: player.creatureData.stats.ataque * coefDano,
-        knockback: 60,
-        size: Vector2.all(raio),
-        tipo: player.creatureData.tipo,
-        cor1: Palette.cinza,
-        cor2: Palette.marrom,
-      ),
-    );
+    double rnd = Random().nextDouble();
+    if (rnd < 0.5) {
+      pedra.parent?.add(
+        ExplosionHitbox(
+          explosao: true,
+          position: pedra.position.clone(),
+          dmg: player.creatureData.stats.ataque * coefDano,
+          knockback: 60,
+          size: Vector2.all(raio),
+          tipo: player.creatureData.tipo,
+          cor1: Palette.cinza,
+          cor2: Palette.marrom,
+        ),
+      );
+    }
   }
 }
 
@@ -3232,6 +3236,8 @@ bool registrarSeVisto(PositionComponent quem, ItemEfeito item) {
   if (jogo is! CreaturesRogueGame) return false;
   final sala = jogo.player.currentRoom;
   if (sala == null || !sala.containsPoint(quem.absolutePosition)) return false;
+  // Em silhueta não foi "visto" de verdade (ver `Maldicao.cegueira`).
+  if (jogo.player.temMaldicao(Maldicao.cegueira)) return false;
   CreatureProgress.instance.registrarItemVisto(item.id);
   return true;
 }

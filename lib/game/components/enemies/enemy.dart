@@ -1,3 +1,5 @@
+import 'package:creatures_rogue/game/components/enemies/alma_penada.dart';
+import 'package:creatures_rogue/game/maldicoes.dart';
 import 'package:creatures_rogue/game/pactos.dart';
 import 'package:creatures_rogue/game/components/projeteis/explosion_hitbox.dart';
 import 'package:creatures_rogue/game/components/enemies/aura_campeao.dart';
@@ -721,6 +723,14 @@ abstract class Enemy extends PositionComponent
     if (doJogador && mult < 1.0 && playerTarget.ignoraDesvantagemElemental) {
       mult = 1.0;
     }
+    // `Dissonância`: o espelho do Prisma — a vantagem (2,0x) vira 1,0x.
+    // Também antes do bloco de cor, senão o número sairia grande como se
+    // tivesse dobrado.
+    if (doJogador &&
+        mult > 1.0 &&
+        playerTarget.temMaldicao(Maldicao.dissonancia)) {
+      mult = 1.0;
+    }
     double fontSize = 6;
 
     if (mult > 1.0) {
@@ -826,6 +836,13 @@ abstract class Enemy extends PositionComponent
     // deixa de existir pra este componente assim que ele sai da árvore.
     for (final item in playerTarget.itens) {
       item.aoMatarInimigo(playerTarget, this);
+    }
+    // `Assombração`: o abate solta uma alma. Boss não — o fim da luta fica
+    // limpo.
+    if (!ehBoss && playerTarget.temMaldicao(Maldicao.assombracao)) {
+      parent?.add(
+        AlmaPenada(position: position.clone(), alvo: playerTarget),
+      );
     }
     playerTarget.abatesSeguidos++;
     final jogo = game;

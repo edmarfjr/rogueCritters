@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/maldicoes.dart';
 import 'package:creatures_rogue/game/pactos.dart';
 import 'package:creatures_rogue/game/game_settings.dart';
 import 'dart:math';
@@ -431,6 +432,10 @@ class RoomComponent extends PositionComponent with HasGameReference {
 
   static const double _passoPedestais = 64.0;
 
+  /// Chance de a sala do tesouro trazer um pedestal amaldiçoado (só quando
+  /// há pedestal de item, e o jogador ainda pode receber maldição).
+  static const double chancePedestalAmaldicoado = 0.4;
+
   void _spawnTreasure({double offsetX = 0, double offsetY = 0}) {
     final centro =
         position + Vector2(width / 2 - 8, centerY) + Vector2(offsetX, offsetY);
@@ -468,6 +473,29 @@ class RoomComponent extends PositionComponent with HasGameReference {
           alternativas: oferta.alternativas,
         ),
       );
+    }
+
+    // Pedestal amaldiçoado: às vezes o de ITEM vem com uma maldição, e levar
+    // o item dele NÃO fecha os outros (ver `PedestalComponent.maldicao`).
+    // Decidido aqui, junto do sorteio da oferta, e só pra maldição que o
+    // jogador ainda não carrega.
+    // Nunca na sala inicial: a run (ou a masmorra) não abre já com maldição.
+    final deItem = data.type == RoomType.start
+        ? const <PedestalComponent>[]
+        : pedestais.where((p) => p.itemEfeito != null).toList();
+    if (deItem.isNotEmpty && _random.nextDouble() < chancePedestalAmaldicoado) {
+      final maldicao = Maldicao.sortear(player.maldicoes, _random);
+      if (maldicao != null) {
+        final i = pedestais.indexOf(deItem[_random.nextInt(deItem.length)]);
+        final p = pedestais[i];
+        pedestais[i] = PedestalComponent(
+          position: p.position,
+          familia: p.familia,
+          itemEfeito: p.itemEfeito,
+          alternativas: p.alternativas,
+          maldicao: maldicao,
+        );
+      }
     }
 
     // Antes do `add`: o `onLoad` de um deles pode terminar no mesmo quadro, e
@@ -850,6 +878,7 @@ class RoomComponent extends PositionComponent with HasGameReference {
     data.isCleared = true;
     GameAudio.instance.play(Sfx.salaLimpa);
     player.avancarOvo();
+    player.avancarMaldicoes();
 
     // Duelo vencido (ver [iniciarDuelo]): o prêmio no centro da sala.
     if (_premioDuelo) {

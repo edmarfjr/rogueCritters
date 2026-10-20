@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/maldicoes.dart';
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -33,6 +34,7 @@ enum EventoTipo {
   ninho,
   dojo,
   duelo,
+  idolo,
 }
 
 /// Um botão da janela do evento. [bloqueio] não nulo = botão apagado, com o
@@ -90,6 +92,9 @@ class EventoNpc extends PositionComponent
   /// Dojo: preço da primeira aula, e quanto cada aula seguinte encarece.
   static const int precoDojo = 6;
   static const int encarecimentoDojo = 4;
+
+  /// Ídolo: moedas da opção de moedas.
+  static const int moedasIdolo = 10;
 
   int _usos = 0;
 
@@ -152,6 +157,13 @@ class EventoNpc extends PositionComponent
           caminho: 'items/balanca.png',
           cor1: Palette.laranja,
           cor2: Palette.marrom,
+        );
+      case EventoTipo.idolo:
+        // Pedra arroxeada: lê como estátua, e como coisa amaldiçoada.
+        return (
+          caminho: 'items/idolo.png',
+          cor1: Palette.indigo,
+          cor2: Palette.plumEsc,
         );
       case EventoTipo.ninho:
         return (
@@ -267,6 +279,8 @@ class EventoNpc extends PositionComponent
         return l.evento_dojoTitulo;
       case EventoTipo.duelo:
         return l.evento_dueloTitulo;
+      case EventoTipo.idolo:
+        return l.evento_idoloTitulo;
     }
   }
 
@@ -293,6 +307,14 @@ class EventoNpc extends PositionComponent
         final desafiante = rival?.creature;
         return l.evento_dueloTexto(
           desafiante == null ? '???' : creatureName(context, desafiante.id),
+        );
+      case EventoTipo.idolo:
+        final m = _maldicaoDoIdolo;
+        if (m == null) return l.evento_idoloCalado;
+        return l.evento_idoloTexto(
+          m.nome(context),
+          m.descricao(context),
+          Maldicao.salas,
         );
     }
   }
@@ -390,6 +412,28 @@ class EventoNpc extends PositionComponent
             acao: () => _aceitarDuelo(context),
           ),
         ];
+      case EventoTipo.idolo:
+        final bloqueio = _maldicaoDoIdolo == null ? l.evento_idoloCheio : null;
+        return [
+          OpcaoEvento(
+            rotulo: l.evento_idoloCura,
+            bloqueio: bloqueio,
+            acao: () => _pactoIdolo(() {
+              game.curarGrupoInteiro();
+              resultado = l.evento_termasCurou;
+            }),
+          ),
+          OpcaoEvento(
+            rotulo: l.evento_idoloMoedas(moedasIdolo),
+            bloqueio: bloqueio,
+            acao: () => _pactoIdolo(() => _moedas(context, moedasIdolo)),
+          ),
+          OpcaoEvento(
+            rotulo: l.evento_idoloItem,
+            bloqueio: bloqueio,
+            acao: () => _pactoIdolo(() => _item(context)),
+          ),
+        ];
     }
   }
 
@@ -469,10 +513,37 @@ class EventoNpc extends PositionComponent
     esgotado = true;
   }
 
+  /// Também lava as maldições — é o jeito de se livrar delas antes da hora.
   void _descansar(BuildContext context) {
     game.curarGrupoInteiro();
+    final purificou = game.player.purificarMaldicoes();
     GameAudio.instance.play(Sfx.liberar);
-    resultado = context.l10n.evento_termasCurou;
+    resultado = purificou
+        ? context.l10n.evento_termasPurificou
+        : context.l10n.evento_termasCurou;
+    esgotado = true;
+  }
+
+  /// Maldição que ESTE ídolo cobra, sorteada na primeira vez que alguém
+  /// pergunta — no construtor o jogo ainda não está à mão. `null` = o
+  /// jogador já carrega o máximo (ver `Maldicao.maximo`), e o ídolo se cala.
+  Maldicao? get _maldicaoDoIdolo {
+    if (!_idoloSorteado) {
+      _idoloSorteado = true;
+      _maldicaoIdolo = Maldicao.sortear(game.player.maldicoes, _rng);
+    }
+    return _maldicaoIdolo;
+  }
+
+  bool _idoloSorteado = false;
+  Maldicao? _maldicaoIdolo;
+
+  /// Entrega o prêmio escolhido e cobra a maldição. Um pacto por ídolo.
+  void _pactoIdolo(VoidCallback premio) {
+    final m = _maldicaoDoIdolo;
+    if (m == null) return;
+    premio();
+    game.player.amaldicoar(m);
     esgotado = true;
   }
 

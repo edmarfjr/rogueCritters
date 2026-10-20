@@ -13,6 +13,10 @@ import 'creatures/gato_neutro_boss_enemy.dart';
 import 'creatures/peixe_neutro_boss_enemy.dart';
 import 'creatures/caranguejo_ermitao_boss_enemy.dart';
 import 'creatures/cobra_agua_boss_enemy.dart';
+import 'creatures/cogumelo_planta_boss_enemy.dart';
+import 'creatures/olho_eletrico_boss_enemy.dart';
+import 'creatures/roda_fogo_boss_enemy.dart';
+import 'creatures/sereia_agua_boss_enemy.dart';
 import 'creatures/grilo_eletrico_boss_enemy.dart';
 import 'creatures/leao_eletrico_boss_enemy.dart';
 import 'creatures/ourico_eletrico_boss_enemy.dart';
@@ -95,10 +99,7 @@ class BossRegistry {
             GriloEletricoBossEnemy(position: pos, playerTarget: plr),
       ),
     ],
-    // Dungeon 3 — as criaturas que ganharam evolucao por ultimo. A Roda de
-    // Fogo ficou de fora: ela nao tem forma inimiga nem de boss (sem
-    // `enemyBuilder` no registro), e criar uma e trabalho de IA propria, nao
-    // uma linha de pool.
+    // Dungeon 3 — as criaturas que ganharam evolucao por ultimo.
     [
       BossOption(
         creatureId: 'slime_planta',
@@ -115,8 +116,6 @@ class BossRegistry {
         builder: (pos, plr) =>
             PinguimAguaBossEnemy(position: pos, playerTarget: plr),
       ),
-      // A vaga de FOGO da dungeon 3 e da Bomba de Fogo, nao da Roda. A Roda
-      // tem forma de boss (`RodaFogoBossEnemy`), mas fica fora desta pool.
       BossOption(
         creatureId: 'bomba_fogo',
         builder: (pos, plr) =>
@@ -153,7 +152,31 @@ class BossRegistry {
             CaranguejoErmitaoBossEnemy(position: pos, playerTarget: plr),
       ),
     ],
-    // Dungeon 5, a FINAL: os quatro neutros, que sao a origem do elenco. Nao
+    // Dungeon 5 — as quatro criaturas mais novas do elenco, uma por
+    // elemento, como nas pools anteriores.
+    [
+      BossOption(
+        creatureId: 'roda_fogo',
+        builder: (pos, plr) =>
+            RodaFogoBossEnemy(position: pos, playerTarget: plr),
+      ),
+      BossOption(
+        creatureId: 'cogumelo_planta',
+        builder: (pos, plr) =>
+            CogumeloPlantaBossEnemy(position: pos, playerTarget: plr),
+      ),
+      BossOption(
+        creatureId: 'sereia_agua',
+        builder: (pos, plr) =>
+            SereiaAguaBossEnemy(position: pos, playerTarget: plr),
+      ),
+      BossOption(
+        creatureId: 'olho_eletrico',
+        builder: (pos, plr) =>
+            OlhoEletricoBossEnemy(position: pos, playerTarget: plr),
+      ),
+    ],
+    // Dungeon 6, a FINAL: os quatro neutros, que sao a origem do elenco. Nao
     // segue a regra de um boss por elemento das pools anteriores porque os
     // neutros nao tem elemento — e eles so aparecem aqui, inclusive como
     // inimigos comuns (ver `EnemySpawner`).

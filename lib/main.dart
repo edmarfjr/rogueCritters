@@ -5,6 +5,7 @@ import 'package:creatures_rogue/game/overlays/compendio_overlay.dart';
 import 'package:creatures_rogue/game/overlays/evento_overlay.dart';
 import 'package:creatures_rogue/game/overlays/reviver_overlay.dart';
 import 'package:creatures_rogue/game/overlays/pactos_overlay.dart';
+import 'package:creatures_rogue/game/overlays/manual_overlay.dart';
 import 'package:creatures_rogue/game/anuncios.dart';
 import 'package:creatures_rogue/game/paleta_tela.dart';
 import 'package:creatures_rogue/game/overlays/retirement_overlay.dart';
@@ -96,6 +97,7 @@ void main() async {
             WildCreatureInfoOverlay(game: game),
         'MainMenu': (context, game) => MainMenuOverlay(game: game),
         'Compendio': (context, game) => CompendioOverlay(game: game),
+        'Manual': (context, game) => ManualOverlay(game: game),
         'Evento': (context, game) => EventoOverlay(game: game),
         'Reviver': (context, game) => ReviverOverlay(game: game),
         'Pactos': (context, game) => PactosOverlay(game: game),

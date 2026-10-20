@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/maldicoes.dart';
 import 'package:creatures_rogue/game/audio/game_audio.dart';
 import 'package:creatures_rogue/game/audio/sfx.dart';
 import 'package:flame/components.dart';
@@ -70,7 +71,7 @@ enum ConsumableType implements ItemDescritor {
   String descricao(BuildContext context) {
     final l = context.l10n;
     return switch (this) {
-      ConsumableType.pocao => l.effect_maisVida(4),
+      ConsumableType.pocao => l.effect_maisVida(2),
       ConsumableType.escudo => l.effect_escudoAtivo,
       ConsumableType.congelar => l.effect_inimigosCongelados,
       ConsumableType.mapa => l.effect_mapaRevelado,
@@ -103,7 +104,10 @@ enum ConsumableType implements ItemDescritor {
       case ConsumableType.congelar:
         sucesso = player.congelarInimigos(3.0);
       case ConsumableType.mapa:
-        sucesso = player.revelarMapa();
+        // Com a `Névoa` o mapa revelado nem apareceria: recusa, e o item
+        // fica no bolso.
+        sucesso =
+            !player.temMaldicao(Maldicao.nevoa) && player.revelarMapa();
       case ConsumableType.doce:
         sucesso = player.ganharXp(15);
       case ConsumableType.espelho:

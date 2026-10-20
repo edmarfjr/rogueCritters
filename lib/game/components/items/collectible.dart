@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/maldicoes.dart';
 import 'dart:ui' as ui;
 import 'package:creatures_rogue/game/audio/game_audio.dart';
 import 'package:creatures_rogue/game/audio/sfx.dart';
@@ -20,6 +21,16 @@ abstract class Collectible extends PositionComponent
 
   late final Sprite _sprite;
   final Paint _paint = Paint()..filterQuality = FilterQuality.none;
+
+  /// Silhueta preta da `Cegueira` — mesmo filtro da Hud pra ícone apagado.
+  static final Paint _silhueta = Paint()
+    ..filterQuality = FilterQuality.none
+    ..colorFilter = const ColorFilter.mode(Palette.preto, BlendMode.srcATop);
+
+  /// A `Cegueira` esconde este coletável? Só os que têm rótulo (pedestal,
+  /// chão de evento) e a loja: moeda e coração aparecem aos montes e não
+  /// são decisão nenhuma.
+  bool get cegavel => _nome != null;
 
   /// Nome resolvido uma vez no [onLoad]: traduzir a cada quadro custaria uma
   /// busca de l10n por item por frame, e o texto nunca muda enquanto o item
@@ -101,9 +112,16 @@ abstract class Collectible extends PositionComponent
 
   @override
   void render(Canvas canvas) {
-    _sprite.render(canvas, size: size, overridePaint: _paint);
+    // Decidido a cada quadro, e não no `onLoad`: o andar inteiro nasce de uma
+    // vez, então os itens já estavam carregados quando a maldição chegou.
+    final cego = cegavel && game.player.temMaldicao(Maldicao.cegueira);
+    _sprite.render(
+      canvas,
+      size: size,
+      overridePaint: cego ? _silhueta : _paint,
+    );
 
-    final nome = _nome;
+    final nome = cego && _nome != null ? '???' : _nome;
     if (nome == null) return;
     _nomePaint.render(
       canvas,

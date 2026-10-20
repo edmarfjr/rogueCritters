@@ -64,7 +64,14 @@ class EnemySpawner {
       SpawnOption(CreatureRegistry.tubaraoAgua, 20),
       SpawnOption(CreatureRegistry.leaoEletrico, 20),
     ],
-    // Dungeon final: so os neutros. Eles saíram das pools 1-4 pra que a
+    // Dungeon 5: as quatro criaturas mais novas.
+    [
+      SpawnOption(CreatureRegistry.rodaFogo, 20),
+      SpawnOption(CreatureRegistry.cogumeloPlanta, 20),
+      SpawnOption(CreatureRegistry.sereiaAgua, 20),
+      SpawnOption(CreatureRegistry.olhoEletrico, 20),
+    ],
+    // Dungeon final: so os neutros. Eles saíram das pools 1-5 pra que a
     // dungeon deles seja a unica onde aparecem.
     [
       SpawnOption(CreatureRegistry.caoNeutro, 20),

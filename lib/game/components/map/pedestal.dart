@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+import 'package:creatures_rogue/game/maldicoes.dart';
 import 'dart:math';
 
 import 'package:creatures_rogue/game/components/items/collectible.dart';
@@ -42,6 +44,36 @@ class PedestalComponent extends Obstacle {
   /// Segundos que cada oferta fica antes de trocar pela próxima.
   static const double intervaloCoroa = 1.0;
 
+  /// Pedestal amaldiçoado: levar o item daqui traz esta maldição, e em troca
+  /// NÃO encerra a oferta dos [irmaos] — o jogador pode levar os dois. O
+  /// contrário continua valendo: escolher um irmão fecha este aqui.
+  final Maldicao? maldicao;
+
+  /// Nome da maldição, escrito embaixo do pedestal — a escolha é sempre
+  /// informada. Resolvido uma vez no [onLoad], como o nome dos coletáveis.
+  String? _nomeMaldicao;
+
+  /// Mesmo desenho do rótulo dos coletáveis (ver `Collectible`), na cor da
+  /// maldição.
+  static final TextPaint _maldicaoPaint = TextPaint(
+    style: const TextStyle(
+      color: Palette.rosa,
+      fontSize: 6.0,
+      fontFamily: 'pixelFont',
+      fontWeight: FontWeight.bold,
+      shadows: [
+        Shadow(color: Palette.preto, offset: Offset(1, 1)),
+        Shadow(color: Palette.preto, offset: Offset(-1, -1)),
+        Shadow(color: Palette.preto, offset: Offset(1, -1)),
+        Shadow(color: Palette.preto, offset: Offset(-1, 1)),
+        Shadow(color: Palette.preto, offset: Offset(0, 1)),
+        Shadow(color: Palette.preto, offset: Offset(0, -1)),
+        Shadow(color: Palette.preto, offset: Offset(1, 0)),
+        Shadow(color: Palette.preto, offset: Offset(-1, 0)),
+      ],
+    ),
+  );
+
   double _tempoTroca = 0.0;
   int _indiceOferta = 0;
 
@@ -62,12 +94,14 @@ class PedestalComponent extends Obstacle {
 
   PedestalComponent({
     required super.position,
-    super.cor1 = Palette.indigo,
-    super.cor2 = Palette.cinzaEsc,
     required this.familia,
     this.itemEfeito,
     this.alternativas = const [],
+    this.maldicao,
   }) : super(
+         // Amaldiçoado: o pedestal todo em roxo, sem precisar de arte nova.
+         cor1: maldicao == null ? Palette.indigo : Palette.roxoEsc,
+         cor2: maldicao == null ? Palette.cinzaEsc : Palette.plumEsc,
          spritePath: 'tileset/pedestal.png',
          size: Vector2(16, 16),
          collisionType: CollisionType.passive,
@@ -126,6 +160,10 @@ class PedestalComponent extends Obstacle {
 
   @override
   Future<void> onLoad() async {
+    // Antes do `await`: o contexto não pode atravessar a espera.
+    final m = maldicao;
+    final contexto = findGame()?.buildContext;
+    if (m != null && contexto != null) _nomeMaldicao = m.nome(contexto);
     await super.onLoad();
 
     // O jogador pode ter levado o item do irmão enquanto este aqui ainda
@@ -171,7 +209,7 @@ class PedestalComponent extends Obstacle {
   void update(double dt) {
     super.update(dt);
     _alternarOferta(dt);
-    if (irmaos.isEmpty || !hasItem) return;
+    if (!hasItem || (irmaos.isEmpty && maldicao == null)) return;
 
     if (temColetavel) {
       _itemApareceu = true;
@@ -182,9 +220,29 @@ class PedestalComponent extends Obstacle {
     // O item daqui sumiu: o jogador escolheu. Fecha os dois lados — este
     // primeiro, pra que o `encerrarOferta` do irmão não volte batendo aqui.
     hasItem = false;
+    final m = maldicao;
+    if (m != null) {
+      // Amaldiçoado: a maldição vem, e os irmãos seguem oferecendo.
+      final jogo = findGame();
+      if (jogo is CreaturesRogueGame) jogo.player.amaldicoar(m);
+      return;
+    }
     for (final outro in irmaos) {
       outro.encerrarOferta();
     }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    final nome = _nomeMaldicao;
+    if (nome == null || !hasItem) return;
+    _maldicaoPaint.render(
+      canvas,
+      nome,
+      Vector2(size.x / 2, size.y + 2),
+      anchor: Anchor.topCenter,
+    );
   }
 
   /// Há um coletável aqui — ou um a caminho, no meio da troca da

@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/components/UI/maldicoes_indicator.dart';
 import 'package:creatures_rogue/game/components/UI/carga_sala_indicator.dart';
 import 'package:creatures_rogue/game/components/items/item_efeito.dart';
 import 'dart:ui' as ui;
@@ -199,6 +200,12 @@ class Hud extends PositionComponent {
       // Cargas de sala, logo à direita do anel da habilidade 2 (que é
       // `Anchor.center` em x=40 com raio 4, então termina em x=44). Some
       // sozinho quando nenhum item em mãos gasta carga.
+      // Maldições ativas, embaixo do andar e das moedas.
+      MaldicoesIndicator(
+        maldicoes: () => player.maldicoes,
+        position: Vector2(60, 14),
+      ),
+
       CargaSalaIndicator(
         cargas: () => player.cargasDeSala,
         maximo: Player.cargasDeSalaMax,

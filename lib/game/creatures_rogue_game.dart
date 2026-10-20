@@ -1,3 +1,4 @@
+import 'package:creatures_rogue/game/maldicoes.dart';
 import 'package:creatures_rogue/game/pactos.dart';
 import 'dart:async';
 import 'package:creatures_rogue/l10n/creature_i18n.dart';
@@ -292,6 +293,7 @@ class CreaturesRogueGame extends FlameGame
   void trocarParaProximaCriatura() {
     if (!_runStarted) return;
     if (trocaCooldown > 0) return;
+    if (_acorrentado()) return;
 
     for (int i = 1; i < maxCompanions; i++) {
       final slot = (companionAtivoIndex + i) % maxCompanions;
@@ -306,10 +308,26 @@ class CreaturesRogueGame extends FlameGame
   void onTapCompanionSlot(int slot) {
     if (slot == companionAtivoIndex) return;
     if (trocaCooldown > 0) return;
+    if (_acorrentado()) return;
     if (slotDisponivel(slot)) {
       trocaCooldown = _trocaCooldownInicial = trocaCooldownMax;
       _trocarParaSlot(slot);
     }
+  }
+
+  /// `Corrente`: a troca pedida pelo jogador não sai, com aviso. A troca
+  /// forçada de quem cai (ver [pocketarSlotAtivo]) não passa por aqui.
+  bool _acorrentado() {
+    if (!player.temMaldicao(Maldicao.corrente)) return false;
+    GameAudio.instance.play(Sfx.energiaVazia);
+    player.parent?.add(
+      TextEffect(
+        text: buildContext!.l10n.maldicao_acorrentado,
+        position: player.position.clone() + Vector2(0, -player.size.y / 2 - 4),
+        color: Palette.rosa,
+      ),
+    );
+    return true;
   }
 
   /// A ativa bateu 0 de vida em combate (chamado por `Player.takeDamage`):
@@ -1106,6 +1124,9 @@ class CreaturesRogueGame extends FlameGame
     tempoDeRun = (dados['tempoDeRun'] as num?)?.toDouble() ?? 0.0;
     abatesDaRun = (dados['abates'] as num?)?.toInt() ?? 0;
     reviveuNestaRun = dados['reviveu'] as bool? ?? false;
+    player.maldicoes
+      ..clear()
+      ..addAll(Maldicao.deSave(dados['maldicoes']));
     bossesDaRun = (dados['bosses'] as num?)?.toInt() ?? 0;
     // Save anterior a este campo: sem histórico, qualquer criatura pode vir.
     criaturasOferecidas
@@ -1272,6 +1293,7 @@ class CreaturesRogueGame extends FlameGame
       'tempoDeRun': tempoDeRun,
       'abates': abatesDaRun,
       'reviveu': reviveuNestaRun,
+      'maldicoes': Maldicao.paraSave(player.maldicoes),
       'pactos': Pactos.paraSave(Pactos.daRun),
       'bosses': bossesDaRun,
       'criaturasUsadas': List<String>.from(criaturasUsadas),

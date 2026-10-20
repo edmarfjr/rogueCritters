@@ -75,6 +75,10 @@ class ShopStand extends Collectible {
     ),
   );
 
+  /// Balcão não tem rótulo, mas o produto é a decisão: a `Cegueira` vale.
+  @override
+  bool get cegavel => true;
+
   @override
   void update(double dt) {
     super.update(dt);

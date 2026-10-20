@@ -1,8 +1,10 @@
 enum CreatureType { fogo, planta, agua, eletrico, neutro }
 
+// Ciclo fechado: fogo > planta > elétrico > água > fogo. Cada elemento
+// vence um e perde pra outro; os pares de fora do ciclo ficam em 1,0x.
 const Map<CreatureType, CreatureType> _vantagens = {
   CreatureType.fogo: CreatureType.planta,
-  CreatureType.planta: CreatureType.agua,
+  CreatureType.planta: CreatureType.eletrico,
   CreatureType.agua: CreatureType.fogo,
   CreatureType.eletrico: CreatureType.agua,
 };
