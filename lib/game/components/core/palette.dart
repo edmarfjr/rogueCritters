@@ -9,7 +9,7 @@ class Palette {
   static const Color marrom = Color(0xFFAB5236);    // 04 - brown
   static const Color cinzaEsc = Color(0xFF5F574F);     // 05 - dark gray
   static const Color cinza = Color(0xFFC2C3C7);        // 06 - light gray
-  static const Color branco = Color(0xFFFFFFFF);//Color(0xFFFFF1E8);       // 07 - white
+  static const Color branco = Color(0xFFFFF1E8);//Color(0xFFFFF1E8);       // 07 - white
   static const Color vermelho = Color(0xFFFF004D);     // 08 - red
   static const Color laranja = Color(0xFFFFA300);      // 09 - orange
   static const Color amarelo = Color(0xFFFFFF27);      // 10 - yellow

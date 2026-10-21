@@ -152,6 +152,9 @@ class UiTheme {
   static const Color manualDestaqueCor = Palette.burgundy;
   static const Color manualLinhaCor = Palette.picotronBege;
   static const Color manualMesaCor = Palette.chocolate;
+  // Capa e contracapa: cartolina roxa com letreiro amarelo.
+  static const Color manualCapaCor = Palette.roxoEsc;
+  static const Color manualCapaTextoCor = Palette.lemon;
   
 }
 

@@ -171,14 +171,20 @@ class _ManualOverlayState extends State<ManualOverlay> {
     return CustomPaint(
       // Semente = número da página: cada folha tem as próprias manchas, e
       // elas não mudam ao virar e voltar.
-      painter: _PapelEnvelhecido(semente: indice),
+      painter: _PapelEnvelhecido(
+        semente: indice,
+        base: pagina.titulo == null
+            ? UiTheme.manualCapaCor
+            : UiTheme.manualPapelCor,
+      ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (pagina.titulo != null) ...[
-              // Cabeçalho do livreto: título à esquerda, logo no canto.
+              // Cabeçalho do livreto: título à esquerda, logo no canto
+              // direito das páginas ímpares.
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -192,13 +198,16 @@ class _ManualOverlayState extends State<ManualOverlay> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  SpriteUi(
-                    caminho: 'title.png',
-                    tamanho: Vector2(140, 28),
-                    cor1: Palette.lemon,
-                    cor2: Palette.indigo,
-                  ),
+                  // Logo só nas páginas ímpares.
+                  if (!(indice + 1).isOdd) ...[
+                    const SizedBox(width: 6),
+                    SpriteUi(
+                      caminho: 'title.png',
+                      tamanho: Vector2(140, 28),
+                      cor1: Palette.lemon,
+                      cor2: Palette.indigo,
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 3),
@@ -222,7 +231,7 @@ class _ManualOverlayState extends State<ManualOverlay> {
             ),
             // Capa sem número, como no livreto. O número vai no canto de
             // fora: à esquerda nas páginas da esquerda do livreto aberto.
-            if (indice > 0)
+            if (indice > 0 && indice < _paginas(context).length - 1)
               Align(
                 alignment: indice.isEven
                     ? Alignment.centerLeft
@@ -476,7 +485,7 @@ class _ManualOverlayState extends State<ManualOverlay> {
               l.manual_capaSub,
               tamanho: 16,
               negrito: true,
-              cor: _destaque,
+              cor: UiTheme.manualCapaTextoCor,
               alinhamento: TextAlign.center,
             ),
             const SizedBox(height: 18),
@@ -774,7 +783,7 @@ class _ManualOverlayState extends State<ManualOverlay> {
             children: [
               CreatureSprite(creature: base, size: _ladoSprite),
               const Icon(Icons.arrow_forward, color: _destaque),
-              CreatureSprite(creature: evoluida, size: _ladoSprite),
+              CreatureSprite(creature: evoluida, size: _ladoSprite * 1.5),
             ],
           ),
         const SizedBox(height: 6),
@@ -1122,17 +1131,17 @@ class _ManualOverlayState extends State<ManualOverlay> {
               CreatureRegistry.tartarugaPlanta,
               CreatureRegistry.aveEletrica,
             ])
-              CreatureSprite(creature: c, size: _ladoSprite),
+              CreatureSprite(creature: c, size: _ladoSprite*2),
           ],
         ),
-        const SizedBox(height: 24),
+       /* const SizedBox(height: 24),
         _texto(
           context.l10n.manual_fim,
           tamanho: 16,
           negrito: true,
-          cor: _destaque,
+          cor: UiTheme.manualCapaTextoCor,
           alinhamento: TextAlign.center,
-        ),
+        ), */
       ],
     );
   }
@@ -1144,7 +1153,10 @@ class _ManualOverlayState extends State<ManualOverlay> {
 /// envelhece igual.
 class _PapelEnvelhecido extends CustomPainter {
   final int semente;
-  const _PapelEnvelhecido({required this.semente});
+
+  /// Cor da folha: o papel das páginas, ou a cartolina da capa.
+  final Color base;
+  const _PapelEnvelhecido({required this.semente, required this.base});
 
   /// Lado de cada grão, em px.
   static const double _grao = 2;
@@ -1155,7 +1167,7 @@ class _PapelEnvelhecido extends CustomPainter {
     final rng = Random(semente * 7919 + 17);
     final pixel = Paint()..isAntiAlias = false;
 
-    canvas.drawRect(folha, Paint()..color = UiTheme.manualPapelCor);
+    canvas.drawRect(folha, Paint()..color = base);
 
     // Amarelado irregular: nódoas grandes e suaves.
     for (var i = 0; i < 5; i++) {
@@ -1202,8 +1214,8 @@ class _PapelEnvelhecido extends CustomPainter {
 
     // Grão: pontinhos escuros e claros, alinhados numa grade de [_grao] px
     // pra ler como pixel art. Subir [_grao] engrossa o grão.
-    final escuro = Palette.chocolate.withValues(alpha: 0.16);
-    final claro = Palette.branco.withValues(alpha: 0.2);
+    final escuro = Palette.preto.withValues(alpha: 0.16);
+    final claro = Palette.branco.withValues(alpha: 0.1);
     final pontos = (size.width * size.height / (180 * _grao)).round();
     for (var i = 0; i < pontos; i++) {
       pixel.color = rng.nextBool() ? escuro : claro;
@@ -1226,35 +1238,37 @@ class _PapelEnvelhecido extends CustomPainter {
           radius: 0.95,
           colors: [
             Palette.chocolate.withValues(alpha: 0),
-            Palette.chocolate.withValues(alpha: 0.32),
+            Palette.chocolate.withValues(alpha: 0.4),
           ],
           stops: const [0.55, 1],
         ).createShader(folha),
     );
 
     // Margem gasta: uma faixa irregular nos quatro lados.
-    pixel.color = Palette.chocolate.withValues(alpha: 0.22);
-    for (var x = 0.0; x < size.width; x += 3) {
+    pixel.color = Palette.preto.withValues(alpha: 0.25);
+    int sizeMargem = 4;
+    for (var x = 0.0; x < size.width; x += sizeMargem) {
       canvas.drawRect(
-        Rect.fromLTWH(x, 0, 3, 1 + rng.nextInt(3).toDouble()),
+        Rect.fromLTWH(x, 0, sizeMargem.toDouble(), 1 + rng.nextInt(sizeMargem).toDouble()),
         pixel,
       );
-      final baixo = 1 + rng.nextInt(3).toDouble();
-      canvas.drawRect(Rect.fromLTWH(x, size.height - baixo, 3, baixo), pixel);
+      final baixo = 1 + rng.nextInt(sizeMargem).toDouble();
+      canvas.drawRect(Rect.fromLTWH(x, size.height - baixo, sizeMargem.toDouble(), baixo), pixel);
     }
-    for (var y = 0.0; y < size.height; y += 3) {
+    for (var y = 0.0; y < size.height; y += sizeMargem) {
       canvas.drawRect(
-        Rect.fromLTWH(0, y, 1 + rng.nextInt(3).toDouble(), 3),
+        Rect.fromLTWH(0, y, 1 + rng.nextInt(sizeMargem).toDouble(), sizeMargem.toDouble()),
         pixel,
       );
-      final direita = 1 + rng.nextInt(3).toDouble();
+      final direita = 1 + rng.nextInt(sizeMargem).toDouble();
       canvas.drawRect(
-        Rect.fromLTWH(size.width - direita, y, direita, 3),
+        Rect.fromLTWH(size.width - direita, y, direita, sizeMargem.toDouble()),
         pixel,
       );
     }
   }
 
   @override
-  bool shouldRepaint(_PapelEnvelhecido antigo) => antigo.semente != semente;
+  bool shouldRepaint(_PapelEnvelhecido antigo) =>
+      antigo.semente != semente || antigo.base != base;
 }
